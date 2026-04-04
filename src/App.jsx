@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Activity, Info, Calculator, CheckCircle, AlertCircle, Globe, SlidersHorizontal, BookOpen, Lightbulb } from 'lucide-react';
 
 // --- Mathematische Hilfsfunktionen ---
 const f = [];
 const factorial = (n) => {
+  if (n < 0) return NaN;
+  if (n > 170) return Infinity;
   if (n === 0 || n === 1) return 1;
   if (f[n] > 0) return f[n];
   return f[n] = factorial(n - 1) * n;
@@ -35,15 +37,15 @@ const FOLGEN = [
 const REIHEN = [
   { id: 'harm', name: 'Harmonische Reihe', tag: 'divergent', formula: '$S_n = \\sum_{k=1}^n \\frac{1}{k}$', limit: null, calcTerm: (k) => 1 / k },
   { id: 'harm_alt', name: 'Alternierende Harmonische', tag: 'konvergent', formula: '$S_n = \\sum_{k=1}^n \\frac{(-1)^{k+1}}{k}$', limit: Math.log(2), calcTerm: (k) => Math.pow(-1, k + 1) / k },
-  { id: 'geom_reihe', name: 'Geometrische Reihe', tag: 'parameterabhängig', formula: '$S_n = \\sum_{k=0}^n q^k$', limit: (q) => Math.abs(q) < 1 ? (q / (1 - q)) : null, calcTerm: (k, q) => Math.pow(q, k), hasQ: true },
+  { id: 'geom_reihe', name: 'Geometrische Reihe', tag: 'parameterabhängig', formula: '$S_n = \\sum_{k=0}^n q^k$', limit: (q) => Math.abs(q) < 1 ? (1 / (1 - q)) : null, calcTerm: (k, q) => Math.pow(q, k), hasQ: true, startK: 0 },
   { id: 'basel', name: 'Basel-Problem', tag: 'konvergent', formula: '$S_n = \\sum_{k=1}^n \\frac{1}{k^2}$', limit: (Math.PI * Math.PI) / 6, calcTerm: (k) => 1 / (k * k) },
-  { id: 'euler_e', name: 'Euler-Reihe', tag: 'konvergent', formula: '$S_n = \\sum_{k=0}^n \\frac{1}{k!}$', limit: Math.E, calcTerm: (k) => 1 / factorial(k) },
+  { id: 'euler_e', name: 'Euler-Reihe', tag: 'konvergent', formula: '$S_n = \\sum_{k=0}^n \\frac{1}{k!}$', limit: Math.E, calcTerm: (k) => 1 / factorial(k), startK: 0 },
   { id: 'teleskop', name: 'Teleskopreihe', tag: 'konvergent', formula: '$S_n = \\sum_{k=1}^n \\frac{1}{k(k+1)}$', limit: 1, calcTerm: (k) => 1 / (k * (k + 1)) },
   { id: 'r_p3', name: 'p-Reihe (p=3)', tag: 'konvergent', formula: '$S_n = \\sum_{k=1}^n \\frac{1}{k^3}$', limit: 1.2020569, calcTerm: (k) => 1 / (k * k * k) },
-  { id: 'r_leibniz', name: 'Leibniz-Reihe', tag: 'konvergent', formula: '$S_n = \\sum_{k=0}^n \\frac{(-1)^k}{2k+1}$', limit: Math.PI / 4, calcTerm: (k) => Math.pow(-1, k) / (2 * k + 1) },
+  { id: 'r_leibniz', name: 'Leibniz-Reihe', tag: 'konvergent', formula: '$S_n = \\sum_{k=0}^n \\frac{(-1)^k}{2k+1}$', limit: Math.PI / 4, calcTerm: (k) => Math.pow(-1, k) / (2 * k + 1), startK: 0 },
   { id: 'r_mengoli', name: 'Mengoli-Reihe', tag: 'konvergent', formula: '$S_n = \\sum_{k=1}^n \\frac{1}{k(k+1)(k+2)}$', limit: 0.25, calcTerm: (k) => 1 / (k * (k + 1) * (k + 2)) },
   { id: 'r_div_sqrt', name: 'Wurzel-Reihe', tag: 'divergent', formula: '$S_n = \\sum_{k=1}^n \\frac{1}{\\sqrt{k}}$', limit: null, calcTerm: (k) => 1 / Math.sqrt(k) },
-  { id: 'r_div_geom', name: 'Divergente Geometrische', tag: 'divergent', formula: '$S_n = \\sum_{k=0}^n 2^k$', limit: null, calcTerm: (k) => Math.pow(2, k) },
+  { id: 'r_div_geom', name: 'Divergente Geometrische', tag: 'divergent', formula: '$S_n = \\sum_{k=0}^n 2^k$', limit: null, calcTerm: (k) => Math.pow(2, k), startK: 0 },
 ];
 
 const POTENZREIHEN = [
@@ -167,12 +169,12 @@ const EXPLANATIONS = {
 const DEFINITIONS = {
   'folge': {
     title: "Definition: Konvergenz einer Folge ($\\varepsilon$-Kriterium)",
-    math: "$$ \\forall \\varepsilon > 0 \\quad \\exists N \\in \\mathbb{N} : \\forall n \\ge N \\implies | x_n - a | < \\varepsilon $$",
+    math: "$$ \\forall \\varepsilon > 0 \\quad \\exists N \\in \\mathbb{N} : \\forall n \\ge N \\implies | z_n - a | < \\varepsilon $$",
     text: "Zu jeder (noch so kleinen) Fehlerschranke $\\varepsilon$ gibt es einen Index $N$, ab dem alle weiteren Folgenglieder im Schlauch um den Grenzwert $a$ liegen."
   },
   'reihe': {
     title: "Definition: Konvergenz einer Reihe (Partialsummen!)",
-    math: "$$ S = \\lim_{n \\to \\infty} S_n \\quad \\text{mit} \\quad S_n = \\sum_{k=1}^n a_k $$",
+    math: "$$ S = \\lim_{n \\to \\infty} S_n \\quad \\text{mit} \\quad S_n = \\sum_{k=0}^n a_k $$",
     text: "WICHTIG: Eine unendliche Reihe konvergiert, wenn die Folge ihrer aufsummierten Partialsummen $S_n$ konvergiert. Der $\\varepsilon$-Schlauch umschließt den Zielwert $S$. Er gilt für die blaue Partialsummen-Linie, NICHT für die einzelnen Glieder $a_k$!"
   },
   'potenzreihe': {
@@ -197,12 +199,12 @@ const DEFINITIONS = {
   },
   'ableitung': {
     title: "Definition: Differentialquotient",
-    math: "$$ f'(x_0) = \\lim_{h \\to 0} \\frac{f(x_0 + h) - f(x_0)}{h} $$",
+    math: "$$ f'(x_*) = \\lim_{h \\to 0} \\frac{f(x_* + h) - f(x_*)}{h} $$",
     text: "Die Ableitung ist der Grenzwert der Sekantensteigung, wenn sich der Abstand $h$ der beiden Punkte auf der $x$-Achse der Null nähert."
   },
   'multivar': {
     title: "Definition: Totale Differenzierbarkeit in $\\mathbb{R}^n$",
-    math: "$$ f(\\mathbf{x}_0 + \\mathbf{h}) = f(\\mathbf{x}_0) + Df(\\mathbf{x}_0) \\cdot \\mathbf{h} + o(\\|\\mathbf{h}\\|) $$",
+    math: "$$ f(\\mathbf{x}_* + \\mathbf{h}) = f(\\mathbf{x}_*) + Df(\\mathbf{x}_*) \\cdot \\mathbf{h} + o(\\|\\mathbf{h}\\|) $$",
     text: "Eine Funktion $f: \\mathbb{R}^n \\to \\mathbb{R}$ ist total differenzierbar, wenn eine lineare Abbildung $Df$ existiert, die den Funktionswert lokal perfekt approximiert. Die Existenz aller partiellen Ableitungen allein reicht NICHT aus!"
   }
 };
@@ -393,7 +395,8 @@ export default function App() {
           result.limitText = `$${cPlot.limit.r.toFixed(2)} ${cPlot.limit.i >= 0 ? '+' : '-'} ${Math.abs(cPlot.limit.i).toFixed(2)}i$`;
         } else cPlot.limit = null;
 
-        let sum = { r: 0, i: 0 }; let term = { r: 1, i: 0 };
+        let sum = { r: 1, i: 0 }; let term = { r: 1, i: 0 };
+        cPlot.points.push({ n: 0, ...sum });
         for (let i = 1; i <= nMax; i++) {
           term = cMult(term, qC); sum = cAdd(sum, term); cPlot.points.push({ n: i, ...sum });
         }
@@ -474,7 +477,8 @@ export default function App() {
       }
 
       let sum = 0;
-      for (let i = 1; i <= nMax; i++) {
+      const startI = mode === 'reihe' ? (result.model.startK ?? 1) : 1;
+      for (let i = startI; i <= nMax; i++) {
         if (mode === 'folge') {
           const val = result.model.calc(i, qParam, aParam); result.data.push({ n: i, val });
           if (i === nMax) result.valAtTarget = val;
@@ -485,11 +489,11 @@ export default function App() {
       }
 
       if (result.limit !== null && result.limit !== undefined && !isNaN(result.limit)) {
-        for (let i = nMax - 1; i >= 0; i--) {
-          if (Math.abs(result.data[i].val - result.limit) >= epsilon) { result.nEpsilon = i + 2; break; }
+        for (let i = result.data.length - 1; i >= 0; i--) {
+          if (Math.abs(result.data[i].val - result.limit) >= epsilon) { result.nEpsilon = result.data[i].n + 1; break; }
         }
         if (result.nEpsilon > nMax) result.nEpsilon = null;
-        if (result.nEpsilon === null && result.data.length > 0 && Math.abs(result.data[0].val - result.limit) < epsilon) result.nEpsilon = 1;
+        if (result.nEpsilon === null && result.data.length > 0 && Math.abs(result.data[0].val - result.limit) < epsilon) result.nEpsilon = result.data[0].n;
       }
 
       let yValues = result.data.map(d => d.val).filter(v => !isNaN(v));
@@ -497,7 +501,7 @@ export default function App() {
         yValues.push(result.limit + epsilon * 1.5, result.limit - epsilon * 1.5);
       }
       const padding = (Math.max(...yValues) - Math.min(...yValues)) * 0.1 || 1;
-      result.X_MIN = 1; result.X_MAX = nMax;
+      result.X_MIN = mode === 'reihe' ? (result.model.startK ?? 1) : 1; result.X_MAX = nMax;
       result.Y_MIN = Math.min(...yValues) - padding; result.Y_MAX = Math.max(...yValues) + padding;
 
     } else if (result.isIntegral) {
@@ -655,9 +659,9 @@ export default function App() {
   if (comp.X_MAX < 0) yAxisX = W - PR;
 
   const xLabel = comp.isMultivar ? "$x$" : comp.isDiscrete ? "$n$" : (domainMode === 'komplex' ? "$\\text{Re}(z)$" : (mode === 'stetigkeit' ? "$z_*$" : "$x$"));
-  const yLabel = comp.isMultivar ? "$y$" : comp.isDiscrete ? (mode === 'folge' ? "$x_n$" : "$S_n$") : (domainMode === 'komplex' ? "$\\text{Im}(z)$" : (mode === 'potenzreihe' ? "$S_N(x)$" : (mode === 'integral' ? "$f(x)$" : (mode === 'stetigkeit' ? "$f(z_*)$" : "$f(x)$"))));
+  const yLabel = comp.isMultivar ? "$y$" : comp.isDiscrete ? (mode === 'folge' ? "$z_n$" : "$S_n$") : (domainMode === 'komplex' ? "$\\text{Im}(z)$" : (mode === 'potenzreihe' ? "$S_N(x)$" : (mode === 'integral' ? "$f(x)$" : (mode === 'stetigkeit' ? "$f(z_*)$" : "$f(x)$"))));
 
-  const getContinuousPaths = (dataKey) => {
+  const getContinuousPaths = useCallback((dataKey) => {
     if (comp.data.length === 0) return [];
     let paths = [];
     let curr = "";
@@ -683,7 +687,7 @@ export default function App() {
     }
     if (curr !== "") paths.push(curr);
     return paths;
-  };
+  }, [comp.data, comp.Y_MAX, comp.Y_MIN, scaleX, scaleY]);
 
   const handleMode = (m) => {
     setMode(m);
@@ -842,7 +846,7 @@ export default function App() {
           <Activity className="text-indigo-600" size={20} />
           <h1 className="font-bold text-slate-800 text-lg hidden sm:block">Analysis Explorer Pro</h1>
         </div>
-        <div className="flex flex-wrap bg-slate-100 p-1.5 rounded-lg border border-slate-200 gap-1.5">
+        <div className="flex overflow-x-auto whitespace-nowrap bg-slate-100 p-1.5 rounded-lg border border-slate-200 gap-1.5 scrollbar-hide">
           {['folge', 'reihe', 'potenzreihe', 'stetigkeit', 'lipschitz', 'ableitung', 'integral', 'multivar'].map(m => (
             <button key={m} onClick={() => handleMode(m)} className={`px-3 py-1.5 text-xs font-bold rounded-md capitalize transition-colors ${mode === m ? 'bg-white shadow-md text-indigo-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'}`}>
               {m === 'lipschitz' ? 'Lipschitz' : m === 'multivar' ? 'Diff. (Rⁿ)' : m}
@@ -1127,7 +1131,7 @@ export default function App() {
                       <SvgMath x={scaleX(comp.X_MAX)} y={scaleY(comp.limit - lParam * Math.abs(comp.X_MAX - x0)) + 15} width={80} height={30} tex="-L" anchor="end" color="#10b981" bold={true} katexReady={katexReady} />
 
                       <line x1={scaleX(x0)} y1={scaleY(comp.limit)} x2={scaleX(x0)} y2={H - PB} stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" />
-                      <SvgMath x={scaleX(x0)} y={H - PB + 10} width={40} height={30} tex="x_0" anchor="middle" color="#334155" bold={true} katexReady={katexReady} />
+                      <SvgMath x={scaleX(x0)} y={H - PB + 10} width={40} height={30} tex="z_*" anchor="middle" color="#334155" bold={true} katexReady={katexReady} />
                       <circle cx={scaleX(x0)} cy={scaleY(comp.limit)} r="7" fill="#10b981" />
                     </g>
                   )}
@@ -1139,12 +1143,12 @@ export default function App() {
                       {comp.secantPts && <line x1={scaleX(comp.secantPts[0].x)} y1={scaleY(comp.secantPts[0].y)} x2={scaleX(comp.secantPts[1].x)} y2={scaleY(comp.secantPts[1].y)} stroke="#3b82f6" strokeWidth="3" strokeDasharray="6 3" />}
                       <line x1={scaleX(x0)} y1={scaleY(comp.limit)} x2={scaleX(x0)} y2={H - PB} stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" />
                       <circle cx={scaleX(x0)} cy={scaleY(comp.limit)} r="7" fill="#f43f5e" />
-                      <SvgMath x={scaleX(x0)} y={H - PB + 10} width={40} height={30} tex="x_0" anchor="middle" color="#334155" bold={true} katexReady={katexReady} />
+                      <SvgMath x={scaleX(x0)} y={H - PB + 10} width={40} height={30} tex="x_*" anchor="middle" color="#334155" bold={true} katexReady={katexReady} />
                       {!isNaN(comp.model.f(x0 + hParam, aParam)) && (
                         <g>
                           <line x1={scaleX(x0 + hParam)} y1={scaleY(comp.model.f(x0 + hParam, aParam))} x2={scaleX(x0 + hParam)} y2={H - PB} stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" />
                           <circle cx={scaleX(x0 + hParam)} cy={scaleY(comp.model.f(x0 + hParam, aParam))} r="7" fill="#3b82f6" />
-                          <SvgMath x={scaleX(x0 + hParam)} y={H - PB + 10} width={60} height={30} tex="x_0+h" anchor="middle" color="#334155" bold={true} katexReady={katexReady} />
+                          <SvgMath x={scaleX(x0 + hParam)} y={H - PB + 10} width={60} height={30} tex="x_*+h" anchor="middle" color="#334155" bold={true} katexReady={katexReady} />
                         </g>
                       )}
                     </g>
