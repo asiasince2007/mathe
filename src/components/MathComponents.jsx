@@ -1,4 +1,5 @@
 import React from 'react';
+import { decodeHtmlEntities, normalizeMathInput, renderMathToHtml } from '../utils/mathRendering';
 
 // --- Robuster Text- und Mathe-Parser ---
 export const TextWithMath = ({ text, katexReady }) => {
@@ -8,10 +9,10 @@ export const TextWithMath = ({ text, katexReady }) => {
     <>
       {parts.map((part, i) => {
         if (part.startsWith('$$') && part.endsWith('$$')) {
-          const math = part.slice(2, -2);
-          if (katexReady && window.katex) {
+          const math = normalizeMathInput(part.slice(2, -2));
+          if (katexReady) {
             try {
-              return <span key={i} dangerouslySetInnerHTML={{ __html: window.katex.renderToString(math, { displayMode: true, throwOnError: false }) }} />;
+              return <span key={i} dangerouslySetInnerHTML={renderMathToHtml(math, true)} />;
             } catch (e) {
               return <span key={i}>{math}</span>;
             }
@@ -19,10 +20,10 @@ export const TextWithMath = ({ text, katexReady }) => {
           return <span key={i} className="font-serif italic">{math}</span>;
         }
         if (part.startsWith('$') && part.endsWith('$') && part.length >= 2) {
-          const math = part.slice(1, -1);
-          if (katexReady && window.katex) {
+          const math = normalizeMathInput(part.slice(1, -1));
+          if (katexReady) {
             try {
-              return <span key={i} dangerouslySetInnerHTML={{ __html: window.katex.renderToString(math, { throwOnError: false }) }} />;
+              return <span key={i} dangerouslySetInnerHTML={renderMathToHtml(math)} />;
             } catch (e) {
               return <span key={i}>{math}</span>;
             }
@@ -30,12 +31,13 @@ export const TextWithMath = ({ text, katexReady }) => {
           return <span key={i} className="font-serif italic">{math}</span>;
         }
 
-        const textParts = part.split(/(\*\*.*?\*\*)/g);
+        const decodedPart = decodeHtmlEntities(part);
+        const textParts = decodedPart.split(/(\*\*.*?\*\*)/g);
         return (
           <span key={i}>
             {textParts.map((tPart, j) => {
               if (tPart.startsWith('**') && tPart.endsWith('**') && tPart.length >= 4) {
-                return <strong key={j} className="font-bold text-slate-900 dark:text-slate-100">{tPart.slice(2, -2)}</strong>;
+                return <strong key={j} className="font-bold text-slate-900 dark:text-slate-100">{decodeHtmlEntities(tPart.slice(2, -2))}</strong>;
               }
               return <span key={j}>{tPart}</span>;
             })}
@@ -48,10 +50,10 @@ export const TextWithMath = ({ text, katexReady }) => {
 
 export const BlockMath = ({ tex, katexReady }) => {
   if (!tex) return null;
-  const mathStr = tex.replace(/\$\$/g, '').replace(/\$/g, '');
-  if (!katexReady || !window.katex) return <div className="font-serif italic text-xl text-center w-full">{mathStr}</div>;
+  const mathStr = normalizeMathInput(tex.replace(/\$\$/g, '').replace(/\$/g, ''));
+  if (!katexReady) return <div className="font-serif italic text-xl text-center w-full">{mathStr}</div>;
   try {
-    return <div className="w-full flex justify-center text-xl" dangerouslySetInnerHTML={{ __html: window.katex.renderToString(mathStr, { displayMode: true, throwOnError: false }) }} />;
+    return <div className="w-full flex justify-center text-xl" dangerouslySetInnerHTML={renderMathToHtml(mathStr, true)} />;
   } catch (e) {
     return <div className="font-serif italic text-xl text-center w-full">{mathStr}</div>;
   }
@@ -75,13 +77,13 @@ export const SvgMath = ({ x, y, width = 100, height = 40, tex, color, anchor = "
     fontSize: '14px'
   };
 
-  const cleanTex = typeof tex === 'string' ? tex.replace(/\$/g, '') : tex;
+  const cleanTex = typeof tex === 'string' ? normalizeMathInput(tex.replace(/\$/g, '')) : tex;
 
   return (
     <foreignObject x={fX} y={y} width={width} height={height} overflow="visible">
       <div style={style} xmlns="http://www.w3.org/1999/xhtml">
-        {katexReady && window.katex ? (
-          <span dangerouslySetInnerHTML={{ __html: window.katex.renderToString(cleanTex, { throwOnError: false }) }} />
+        {katexReady ? (
+          <span dangerouslySetInnerHTML={renderMathToHtml(cleanTex)} />
         ) : (
           <span className="font-serif italic">{cleanTex}</span>
         )}
