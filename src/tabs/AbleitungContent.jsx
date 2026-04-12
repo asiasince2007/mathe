@@ -59,12 +59,12 @@ function DiffSection({ katexReady }) {
       </Card>
 
       <Card type="definition" title="Differentialquotient (Ableitung)" katexReady={katexReady}>
-        <FormulaCard math="f'(x_0) = \\lim_{h \\to 0} \\frac{f(x_0 + h) - f(x_0)}{h}" katexReady={katexReady} />
+        <FormulaCard math="f'(x_0) = \lim_{h \to 0} \frac{f(x_0 + h) - f(x_0)}{h}" katexReady={katexReady} />
         <TextWithMath text="Existiert dieser Grenzwert, so heißt $f$ **differenzierbar** in $x_0$. Der Wert $f'(x_0)$ ist die Steigung der **Tangente** an den Graphen im Punkt $(x_0, f(x_0))$." katexReady={katexReady} />
       </Card>
 
       <Card type="definition" title="Alternative Form (symmetrischer DQ)" katexReady={katexReady}>
-        <FormulaCard math="f'(x_0) = \\lim_{x \\to x_0} \\frac{f(x) - f(x_0)}{x - x_0}" katexReady={katexReady} />
+        <FormulaCard math="f'(x_0) = \lim_{x \to x_0} \frac{f(x) - f(x_0)}{x - x_0}" katexReady={katexReady} />
         <TextWithMath text="Äquivalent: Man lässt den zweiten Punkt $x$ gegen $x_0$ wandern." katexReady={katexReady} />
       </Card>
 
@@ -109,26 +109,26 @@ function DiffSection({ katexReady }) {
 
       <Card type="example" title="Durchgerechnetes Beispiel: $f(x) = x^2$" katexReady={katexReady}>
         <TextWithMath text="Sei $f(x) = x^2$ und $x_0$ beliebig. Dann:" katexReady={katexReady} />
-        <FormulaCard math="\\frac{f(x_0+h)-f(x_0)}{h} = \\frac{(x_0+h)^2 - x_0^2}{h} = \\frac{x_0^2 + 2x_0 h + h^2 - x_0^2}{h} = 2x_0 + h" katexReady={katexReady} />
-        <TextWithMath text="Für $h \\to 0$ ergibt sich $f'(x_0) = 2x_0$. Die Parabel ist überall differenzierbar." katexReady={katexReady} />
+        <FormulaCard math="\frac{f(x_0+h)-f(x_0)}{h} = \frac{(x_0+h)^2 - x_0^2}{h} = \frac{x_0^2 + 2x_0 h + h^2 - x_0^2}{h} = 2x_0 + h" katexReady={katexReady} />
+        <TextWithMath text="Für $h \to 0$ ergibt sich $f'(x_0) = 2x_0$. Die Parabel ist überall differenzierbar." katexReady={katexReady} />
       </Card>
 
       <Card type="warning" title="Nicht-Differenzierbarkeit: $f(x) = |x|$ bei $x_0 = 0$" katexReady={katexReady}>
         <TextWithMath text="Betrachte den Differenzenquotienten:" katexReady={katexReady} />
-        <FormulaCard math="\\frac{|0+h| - |0|}{h} = \\frac{|h|}{h} = \\begin{cases} +1 & h > 0 \\\\ -1 & h < 0 \\end{cases}" katexReady={katexReady} />
-        <TextWithMath text="Die links- und rechtsseitigen Grenzwerte sind **verschieden** ($-1 \\neq +1$). Der Grenzwert existiert nicht &mdash; die Betragsfunktion hat bei $0$ einen **Knick** und ist dort **nicht differenzierbar**!" katexReady={katexReady} />
+        <FormulaCard math="\frac{|0+h| - |0|}{h} = \frac{|h|}{h} = \begin{cases} +1 & h > 0 \\ -1 & h < 0 \end{cases}" katexReady={katexReady} />
+        <TextWithMath text="Die links- und rechtsseitigen Grenzwerte sind **verschieden** ($-1 \neq +1$). Der Grenzwert existiert nicht &mdash; die Betragsfunktion hat bei $0$ einen **Knick** und ist dort **nicht differenzierbar**!" katexReady={katexReady} />
         <TextWithMath text="Wähle oben $f(x) = |x|$ mit $x_0 = 0$ und verkleinere $h$, um den Knick zu sehen." katexReady={katexReady} />
       </Card>
 
-      <Card type="theorem" title="Differenzierbar $\\Rightarrow$ stetig" katexReady={katexReady}>
+      <Card type="theorem" title="Differenzierbar $\Rightarrow$ stetig" katexReady={katexReady}>
         <TextWithMath text="Ist $f$ differenzierbar in $x_0$, so ist $f$ auch stetig in $x_0$." katexReady={katexReady} />
         <TextWithMath text="**Achtung:** Die Umkehrung gilt **nicht**! $|x|$ ist stetig in $0$, aber nicht differenzierbar." katexReady={katexReady} />
       </Card>
 
-      <CollapsibleProof title="Beweis: Differenzierbar $\\Rightarrow$ stetig" katexReady={katexReady}>
+      <CollapsibleProof title="Beweis: Differenzierbar $\Rightarrow$ stetig" katexReady={katexReady}>
         <TextWithMath text="Es gilt:" katexReady={katexReady} />
-        <FormulaCard math="f(x) - f(x_0) = \\frac{f(x) - f(x_0)}{x - x_0} \\cdot (x - x_0)" katexReady={katexReady} />
-        <TextWithMath text="Für $x \\to x_0$ konvergiert der Bruch gegen $f'(x_0)$ (existiert nach Voraussetzung) und der Faktor $(x-x_0) \\to 0$. Also $f(x) \\to f(x_0)$. $\\blacksquare$" katexReady={katexReady} />
+        <FormulaCard math="f(x) - f(x_0) = \frac{f(x) - f(x_0)}{x - x_0} \cdot (x - x_0)" katexReady={katexReady} />
+        <TextWithMath text="Für $x \to x_0$ konvergiert der Bruch gegen $f'(x_0)$ (existiert nach Voraussetzung) und der Faktor $(x-x_0) \to 0$. Also $f(x) \to f(x_0)$. $\blacksquare$" katexReady={katexReady} />
       </CollapsibleProof>
     </div>
   );
@@ -185,13 +185,13 @@ function MWSSection({ katexReady }) {
   return (
     <div className="space-y-5">
       <Card type="theorem" title="Mittelwertsatz der Differentialrechnung" katexReady={katexReady}>
-        <TextWithMath text="Sei $f: [a,b] \\to \\mathbb{R}$ stetig auf $[a,b]$ und differenzierbar auf $(a,b)$. Dann existiert ein $\\xi \\in (a,b)$ mit:" katexReady={katexReady} />
-        <FormulaCard math="f'(\\xi) = \\frac{f(b) - f(a)}{b - a}" katexReady={katexReady} />
-        <TextWithMath text="Die Tangente bei $\\xi$ ist also **parallel** zur Sekante durch $(a, f(a))$ und $(b, f(b))$." katexReady={katexReady} />
+        <TextWithMath text="Sei $f: [a,b] \to \mathbb{R}$ stetig auf $[a,b]$ und differenzierbar auf $(a,b)$. Dann existiert ein $\xi \in (a,b)$ mit:" katexReady={katexReady} />
+        <FormulaCard math="f'(\xi) = \frac{f(b) - f(a)}{b - a}" katexReady={katexReady} />
+        <TextWithMath text="Die Tangente bei $\xi$ ist also **parallel** zur Sekante durch $(a, f(a))$ und $(b, f(b))$." katexReady={katexReady} />
       </Card>
 
       <Card type="intuition" title="Geschwindigkeits-Analogie" katexReady={katexReady}>
-        <TextWithMath text="Stell dir vor, du fährst mit dem Auto von A nach B. Die Durchschnittsgeschwindigkeit auf der Strecke beträgt $80$ km/h. Dann gab es **mindestens einen Moment** $\\xi$, in dem dein Tacho exakt $80$ km/h angezeigt hat!" katexReady={katexReady} />
+        <TextWithMath text="Stell dir vor, du fährst mit dem Auto von A nach B. Die Durchschnittsgeschwindigkeit auf der Strecke beträgt $80$ km/h. Dann gab es **mindestens einen Moment** $\xi$, in dem dein Tacho exakt $80$ km/h angezeigt hat!" katexReady={katexReady} />
       </Card>
 
       {/* Interactive MWS plot */}
@@ -235,23 +235,23 @@ function MWSSection({ katexReady }) {
 
       <Card type="theorem" title="Folgerungen aus dem MWS" katexReady={katexReady}>
         <div className="space-y-2">
-          <TextWithMath text="**1. Konstanz-Kriterium:** Ist $f'(x) = 0$ für alle $x \\in (a,b)$, so ist $f$ **konstant** auf $[a,b]$." katexReady={katexReady} />
-          <TextWithMath text="**2. Monotonie-Kriterium:** $f' \\ge 0$ auf $(a,b)$ $\\Rightarrow$ $f$ ist **monoton wachsend**." katexReady={katexReady} />
-          <TextWithMath text="**3. Lipschitz-Abschätzung:** Ist $|f'(x)| \\le L$ für alle $x \\in (a,b)$, dann:" katexReady={katexReady} />
-          <FormulaCard math="|f(x) - f(y)| \\le L \\cdot |x - y| \\quad \\forall\\, x,y \\in [a,b]" katexReady={katexReady} />
+          <TextWithMath text="**1. Konstanz-Kriterium:** Ist $f'(x) = 0$ für alle $x \in (a,b)$, so ist $f$ **konstant** auf $[a,b]$." katexReady={katexReady} />
+          <TextWithMath text="**2. Monotonie-Kriterium:** $f' \ge 0$ auf $(a,b)$ $\Rightarrow$ $f$ ist **monoton wachsend**." katexReady={katexReady} />
+          <TextWithMath text="**3. Lipschitz-Abschätzung:** Ist $|f'(x)| \le L$ für alle $x \in (a,b)$, dann:" katexReady={katexReady} />
+          <FormulaCard math="|f(x) - f(y)| \le L \cdot |x - y| \quad \forall\, x,y \in [a,b]" katexReady={katexReady} />
         </div>
       </Card>
 
-      <CollapsibleProof title="Beweisskizze: Rolle $\\Rightarrow$ MWS" katexReady={katexReady}>
-        <TextWithMath text="**Satz von Rolle:** Sei $g$ stetig auf $[a,b]$, differenzierbar auf $(a,b)$, mit $g(a)=g(b)$. Dann $\\exists\\,\\xi: g'(\\xi)=0$." katexReady={katexReady} />
+      <CollapsibleProof title="Beweisskizze: Rolle $\Rightarrow$ MWS" katexReady={katexReady}>
+        <TextWithMath text="**Satz von Rolle:** Sei $g$ stetig auf $[a,b]$, differenzierbar auf $(a,b)$, mit $g(a)=g(b)$. Dann $\exists\,\xi: g'(\xi)=0$." katexReady={katexReady} />
         <TextWithMath text="**MWS-Beweis:** Definiere die Hilfsfunktion" katexReady={katexReady} />
-        <FormulaCard math="g(x) = f(x) - f(a) - \\frac{f(b)-f(a)}{b-a}(x-a)" katexReady={katexReady} />
-        <TextWithMath text="Dann ist $g(a) = g(b) = 0$. Nach dem Satz von Rolle existiert $\\xi \\in (a,b)$ mit $g'(\\xi) = 0$, also:" katexReady={katexReady} />
-        <FormulaCard math="g'(\\xi) = f'(\\xi) - \\frac{f(b)-f(a)}{b-a} = 0 \\quad \\Rightarrow \\quad f'(\\xi) = \\frac{f(b)-f(a)}{b-a} \\quad \\blacksquare" katexReady={katexReady} />
+        <FormulaCard math="g(x) = f(x) - f(a) - \frac{f(b)-f(a)}{b-a}(x-a)" katexReady={katexReady} />
+        <TextWithMath text="Dann ist $g(a) = g(b) = 0$. Nach dem Satz von Rolle existiert $\xi \in (a,b)$ mit $g'(\xi) = 0$, also:" katexReady={katexReady} />
+        <FormulaCard math="g'(\xi) = f'(\xi) - \frac{f(b)-f(a)}{b-a} = 0 \quad \Rightarrow \quad f'(\xi) = \frac{f(b)-f(a)}{b-a} \quad \blacksquare" katexReady={katexReady} />
       </CollapsibleProof>
 
       <Card type="warning" title="Voraussetzungen sind wichtig!" katexReady={katexReady}>
-        <TextWithMath text="Ohne **Stetigkeit** auf $[a,b]$ oder **Differenzierbarkeit** auf $(a,b)$ kann der MWS scheitern. Beispiel: $f(x) = |x|$ auf $[-1,1]$ &mdash; die Sekantensteigung ist $0$, aber $f'(x) = \\pm 1 \\neq 0$ überall (und bei $0$ existiert $f'$ nicht)." katexReady={katexReady} />
+        <TextWithMath text="Ohne **Stetigkeit** auf $[a,b]$ oder **Differenzierbarkeit** auf $(a,b)$ kann der MWS scheitern. Beispiel: $f(x) = |x|$ auf $[-1,1]$ &mdash; die Sekantensteigung ist $0$, aber $f'(x) = \pm 1 \neq 0$ überall (und bei $0$ existiert $f'$ nicht)." katexReady={katexReady} />
       </Card>
     </div>
   );
@@ -276,9 +276,9 @@ function CkSection({ katexReady }) {
     <div className="space-y-5">
       <Card type="definition" title="Klassen $C^k(D)$" katexReady={katexReady}>
         <div className="space-y-2">
-          <TextWithMath text="Sei $D \\subseteq \\mathbb{R}$ offen. Dann ist $f \\in C^k(D)$, falls $f$ **$k$-mal differenzierbar** ist und $f^{(k)}$ **stetig** ist." katexReady={katexReady} />
-          <FormulaCard math="C^0(D) \\supset C^1(D) \\supset C^2(D) \\supset \\cdots \\supset C^\\infty(D) \\supset C^\\omega(D)" katexReady={katexReady} />
-          <TextWithMath text="Insbesondere: $C^\\infty(D) = \\bigcap_{k=0}^\\infty C^k(D)$." katexReady={katexReady} />
+          <TextWithMath text="Sei $D \subseteq \mathbb{R}$ offen. Dann ist $f \in C^k(D)$, falls $f$ **$k$-mal differenzierbar** ist und $f^{(k)}$ **stetig** ist." katexReady={katexReady} />
+          <FormulaCard math="C^0(D) \supset C^1(D) \supset C^2(D) \supset \cdots \supset C^\infty(D) \supset C^\omega(D)" katexReady={katexReady} />
+          <TextWithMath text="Insbesondere: $C^\infty(D) = \bigcap_{k=0}^\infty C^k(D)$." katexReady={katexReady} />
         </div>
       </Card>
 
@@ -313,27 +313,27 @@ function CkSection({ katexReady }) {
       </div>
 
       <Card type="example" title="$C^0$ aber nicht $C^1$: $f(x) = |x|$" katexReady={katexReady}>
-        <TextWithMath text="$f$ ist überall stetig ($C^0$), aber $f'(0)$ existiert nicht (Knick!). Also $f \\notin C^1(\\mathbb{R})$." katexReady={katexReady} />
+        <TextWithMath text="$f$ ist überall stetig ($C^0$), aber $f'(0)$ existiert nicht (Knick!). Also $f \notin C^1(\mathbb{R})$." katexReady={katexReady} />
       </Card>
 
       <Card type="example" title="$C^1$ aber nicht $C^2$: $f(x) = x|x|$" katexReady={katexReady}>
-        <TextWithMath text="Es gilt $f'(x) = 2|x|$, also existiert $f'$ überall und ist stetig: $f \\in C^1$. Aber $f''(0)$ existiert nicht, da $|x|$ bei $0$ einen Knick hat. Also $f \\notin C^2$." katexReady={katexReady} />
+        <TextWithMath text="Es gilt $f'(x) = 2|x|$, also existiert $f'$ überall und ist stetig: $f \in C^1$. Aber $f''(0)$ existiert nicht, da $|x|$ bei $0$ einen Knick hat. Also $f \notin C^2$." katexReady={katexReady} />
       </Card>
 
-      <Card type="example" title="$C^\\infty$ aber nicht $C^\\omega$: Die Bump-Funktion" katexReady={katexReady}>
-        <FormulaCard math="f(x) = \\begin{cases} e^{-1/x^2} & x \\neq 0 \\\\ 0 & x = 0 \\end{cases}" katexReady={katexReady} />
-        <TextWithMath text="Diese Funktion ist **unendlich oft differenzierbar** mit $f^{(k)}(0) = 0$ für alle $k$. Ihre Taylorreihe um $0$ ist also die Nullfunktion &mdash; sie stimmt aber **nicht** mit $f$ überein (für $x \\neq 0$ ist $f > 0$). Also: $f \\in C^\\infty \\setminus C^\\omega$." katexReady={katexReady} />
+      <Card type="example" title="$C^\infty$ aber nicht $C^\omega$: Die Bump-Funktion" katexReady={katexReady}>
+        <FormulaCard math="f(x) = \begin{cases} e^{-1/x^2} & x \neq 0 \\ 0 & x = 0 \end{cases}" katexReady={katexReady} />
+        <TextWithMath text="Diese Funktion ist **unendlich oft differenzierbar** mit $f^{(k)}(0) = 0$ für alle $k$. Ihre Taylorreihe um $0$ ist also die Nullfunktion &mdash; sie stimmt aber **nicht** mit $f$ überein (für $x \neq 0$ ist $f > 0$). Also: $f \in C^\infty \setminus C^\omega$." katexReady={katexReady} />
       </Card>
 
-      <Card type="theorem" title="Potenzreihen sind analytisch ($C^\\omega$)" katexReady={katexReady}>
-        <TextWithMath text="Jede Funktion, die als konvergente Potenzreihe darstellbar ist, gehört zu $C^\\omega$ und damit automatisch auch zu $C^\\infty$." katexReady={katexReady} />
-        <FormulaCard math="f(x) = \\sum_{n=0}^\\infty a_n (x-x_0)^n \\quad \\Rightarrow \\quad f \\in C^\\omega" katexReady={katexReady} />
-        <TextWithMath text="Insbesondere: $e^x, \\sin(x), \\cos(x), \\frac{1}{1-x}$ sind alle analytisch in ihrem Definitionsbereich." katexReady={katexReady} />
+      <Card type="theorem" title="Potenzreihen sind analytisch ($C^\omega$)" katexReady={katexReady}>
+        <TextWithMath text="Jede Funktion, die als konvergente Potenzreihe darstellbar ist, gehört zu $C^\omega$ und damit automatisch auch zu $C^\infty$." katexReady={katexReady} />
+        <FormulaCard math="f(x) = \sum_{n=0}^\infty a_n (x-x_0)^n \quad \Rightarrow \quad f \in C^\omega" katexReady={katexReady} />
+        <TextWithMath text="Insbesondere: $e^x, \sin(x), \cos(x), \frac{1}{1-x}$ sind alle analytisch in ihrem Definitionsbereich." katexReady={katexReady} />
       </Card>
 
-      <Card type="warning" title="Klausur-Falle: $C^1 \\Rightarrow$ total differenzierbar (in $\\mathbb{R}^n$)" katexReady={katexReady}>
-        <TextWithMath text="In der mehrdimensionalen Analysis gilt: Sind alle **partiellen Ableitungen stetig** ($f \\in C^1$), dann ist $f$ **total differenzierbar**. Das ist die wichtigste hinreichende Bedingung!" katexReady={katexReady} />
-        <TextWithMath text="Die Umkehrung gilt nicht: Total differenzierbar $\\not\\Rightarrow C^1$." katexReady={katexReady} />
+      <Card type="warning" title="Klausur-Falle: $C^1 \Rightarrow$ total differenzierbar (in $\mathbb{R}^n$)" katexReady={katexReady}>
+        <TextWithMath text="In der mehrdimensionalen Analysis gilt: Sind alle **partiellen Ableitungen stetig** ($f \in C^1$), dann ist $f$ **total differenzierbar**. Das ist die wichtigste hinreichende Bedingung!" katexReady={katexReady} />
+        <TextWithMath text="Die Umkehrung gilt nicht: Total differenzierbar $\not\Rightarrow C^1$." katexReady={katexReady} />
       </Card>
     </div>
   );
@@ -348,7 +348,7 @@ export default function AbleitungContent({ subTab, katexReady }) {
       <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Ableitung &mdash; Vertiefung</h2>
       {!subTab && (
         <Card type="intuition" title="Willkommen!" katexReady={katexReady}>
-          <TextWithMath text="Wähle oben einen Unterabschnitt: **1D Differenzierbarkeit**, **Mittelwertsatz (1D)** oder **$C^k$ & $\\infty$-oft differenzierbar**." katexReady={katexReady} />
+          <TextWithMath text="Wähle oben einen Unterabschnitt: **1D Differenzierbarkeit**, **Mittelwertsatz (1D)** oder **$C^k$ & $\infty$-oft differenzierbar**." katexReady={katexReady} />
         </Card>
       )}
       {subTab === 'diff' && <DiffSection katexReady={katexReady} />}
