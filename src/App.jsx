@@ -86,11 +86,11 @@ const FUNKTIONEN = [
 ];
 
 const MULTIVAR = [
-  { id: 'mv_poly', name: 'Paraboloid', tag: 'total differenzierbar', formula: '$f(x,y) = x^2 + y^2$', f: (x, y) => x * x + y * y, fx: (x, y) => 2 * x, fy: (x, y) => 2 * y, totalDiff: true },
-  { id: 'mv_prod', name: 'Sattelfläche', tag: 'total differenzierbar', formula: '$f(x,y) = xy$', f: (x, y) => x * y, fx: (x, y) => y, fy: (x, y) => x, totalDiff: true },
+  { id: 'mv_poly', name: 'Paraboloid', tag: 'total differenzierbar', formula: '$f(x,y) = x^2 + y^2$', f: (x, y) => x * x + y * y, fx: (x, y) => { void y; return 2 * x; }, fy: (x, y) => { void x; return 2 * y; }, totalDiff: true },
+  { id: 'mv_prod', name: 'Sattelfläche', tag: 'total differenzierbar', formula: '$f(x,y) = xy$', f: (x, y) => x * y, fx: (x, y) => { void x; return y; }, fy: (x, y) => { void y; return x; }, totalDiff: true },
   { id: 'mv_exp', name: 'Exponentialfläche', tag: 'total differenzierbar', formula: '$f(x,y) = e^{x+y}$', f: (x, y) => Math.exp(x + y), fx: (x, y) => Math.exp(x + y), fy: (x, y) => Math.exp(x + y), totalDiff: true },
   { id: 'mv_sin_cos', name: 'Trigonometrische Fläche', tag: 'total differenzierbar', formula: '$f(x,y) = \\sin(x)\\cos(y)$', f: (x, y) => Math.sin(x) * Math.cos(y), fx: (x, y) => Math.cos(x) * Math.cos(y), fy: (x, y) => -Math.sin(x) * Math.sin(y), totalDiff: true },
-  { id: 'mv_abs', name: 'Betrags-Summe', tag: 'nicht total diff.', formula: '$f(x,y) = |x| + |y|$', f: (x, y) => Math.abs(x) + Math.abs(y), fx: (x, y) => x > 0 ? 1 : (x < 0 ? -1 : NaN), fy: (x, y) => y > 0 ? 1 : (y < 0 ? -1 : NaN), totalDiff: false },
+  { id: 'mv_abs', name: 'Betrags-Summe', tag: 'nicht total diff.', formula: '$f(x,y) = |x| + |y|$', f: (x, y) => Math.abs(x) + Math.abs(y), fx: (x, y) => { void y; return x > 0 ? 1 : (x < 0 ? -1 : NaN); }, fy: (x, y) => { void x; return y > 0 ? 1 : (y < 0 ? -1 : NaN); }, totalDiff: false },
   { id: 'mv_classic', name: 'Standardgegenbeispiel', tag: 'nur partiell diff.', formula: '$f(x,y) = \\frac{xy}{x^2+y^2}$', f: (x, y) => (x * x + y * y) !== 0 ? (x * y) / (x * x + y * y) : 0, fx: (x, y) => { const d = x * x + y * y; return d !== 0 ? (y * (y * y - x * x)) / (d * d) : NaN; }, fy: (x, y) => { const d = x * x + y * y; return d !== 0 ? (x * (x * x - y * y)) / (d * d) : NaN; }, totalDiff: false },
   { id: 'mv_sqrt', name: 'Wurzel-Produkt', tag: 'nur partiell diff.', formula: '$f(x,y) = \\sqrt{|xy|}$', f: (x, y) => Math.sqrt(Math.abs(x * y)), fx: (x, y) => { const p = Math.abs(x * y); return p > 0.0001 ? (y * Math.sign(x * y)) / (2 * Math.sqrt(p)) : 0; }, fy: (x, y) => { const p = Math.abs(x * y); return p > 0.0001 ? (x * Math.sign(x * y)) / (2 * Math.sqrt(p)) : 0; }, totalDiff: false },
 ];
@@ -1089,7 +1089,6 @@ export default function App() {
                   {comp.heatmap.cells.map((cell, i) => {
                     const { ix, iy, z } = cell;
                     const grid = comp.heatmap.grid;
-                    const range = comp.heatmap.range;
                     const cellW = (W - PL - PR) / grid;
                     const cellH = (H - PT - PB) / grid;
                     const cx = PL + ix * cellW;
