@@ -1,5 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Activity, Info, Calculator, CheckCircle, AlertCircle, Globe, SlidersHorizontal, BookOpen, Lightbulb } from 'lucide-react';
+import { Activity, Info, Calculator, CheckCircle, AlertCircle, Globe, SlidersHorizontal, BookOpen, Lightbulb, Moon, Sun } from 'lucide-react';
+import { TextWithMath as TextWithMathNew, BlockMath as BlockMathNew, SvgMath as SvgMathNew, Slider as SliderNew } from './components/MathComponents';
+import { FOLGEN as _F, REIHEN as _R, POTENZREIHEN as _P, INTEGRALE as _I, FUNKTIONEN as _FN, MULTIVAR as _MV, getTag as _gT } from './data/models';
+import { EXPLANATIONS as _EX, DEFINITIONS as _DEF } from './data/explanations';
 
 // --- Mathematische Hilfsfunktionen ---
 const f = [];
@@ -302,6 +305,30 @@ const Slider = ({ label, val, min, max, step, setFn, katexReady }) => (
   </div>
 );
 
+// Lazy-loaded educational content for each tab
+const MultivarContent = React.lazy(() => import('./tabs/MultivarContent'));
+const AbleitungContent = React.lazy(() => import('./tabs/AbleitungContent'));
+const FolgeContent = React.lazy(() => import('./tabs/FolgeContent'));
+const ReiheContent = React.lazy(() => import('./tabs/ReiheContent'));
+const PotenzreiheContent = React.lazy(() => import('./tabs/PotenzreiheContent'));
+const StetigkeitContent = React.lazy(() => import('./tabs/StetigkeitContent'));
+const IntegralContent = React.lazy(() => import('./tabs/IntegralContent'));
+
+function EducationalContent({ mode, subTab, katexReady, x0, y0, theta, comp, darkMode, setX0, setY0, setTheta }) {
+  const props = { subTab, katexReady, x0, y0, theta, comp, darkMode, setX0, setY0, setTheta };
+  return (
+    <React.Suspense fallback={<div className="text-center py-8 text-slate-400">Inhalte werden geladen...</div>}>
+      {mode === 'multivar' && <MultivarContent {...props} />}
+      {mode === 'ableitung' && <AbleitungContent {...props} />}
+      {mode === 'folge' && <FolgeContent {...props} />}
+      {mode === 'reihe' && <ReiheContent {...props} />}
+      {mode === 'potenzreihe' && <PotenzreiheContent {...props} />}
+      {mode === 'stetigkeit' && <StetigkeitContent {...props} />}
+      {mode === 'integral' && <IntegralContent {...props} />}
+    </React.Suspense>
+  );
+}
+
 export default function App() {
   // Reihenfolge der Reiter wie gefordert
   const [mode, setMode] = useState('folge');
@@ -321,6 +348,27 @@ export default function App() {
   const [sumType, setSumType] = useState('mid'); // 'mid', 'lower', 'upper'
   const [y0, setY0] = useState(0.5);
   const [theta, setTheta] = useState(0.785); // pi/4
+  const [darkMode, setDarkMode] = useState(false);
+  const [subTab, setSubTab] = useState(null);
+
+  // Sub-tab definitions
+  const SUB_TABS = {
+    ableitung: [
+      { id: 'diff', label: '1D Differenzierbarkeit' },
+      { id: 'mws', label: 'Mittelwertsatz (1D)' },
+      { id: 'ck', label: 'Cᵏ & ∞-oft db.' },
+    ],
+    multivar: [
+      { id: 'partial', label: 'Partielle Abl.' },
+      { id: 'gradient', label: 'Richtungsabl. & Gradient' },
+      { id: 'total', label: 'Total db.' },
+      { id: 'mws_rn', label: 'Mittelwertsatz (Rⁿ)' },
+    ],
+  };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
 
   useEffect(() => {
     if (window.katex) {
@@ -697,6 +745,10 @@ export default function App() {
     if (m === 'integral') setActiveId('i_quad');
     if (m === 'stetigkeit' || m === 'lipschitz' || m === 'ableitung') setActiveId('f_quad');
     if (m === 'multivar') { setActiveId('mv_poly'); setDomainMode('reell'); }
+    // Set sub-tab
+    if (m === 'ableitung') setSubTab('diff');
+    else if (m === 'multivar') setSubTab('partial');
+    else setSubTab(null);
   };
 
   // --- SHORT EVALUATION FOR GRAPH BADGE ---
@@ -838,25 +890,43 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex flex-col font-sans text-sm">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans text-sm transition-colors duration-300">
 
       {/* 1. HEADER */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shrink-0 shadow-sm z-20">
+      <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex justify-between items-center shrink-0 shadow-sm z-20">
         <div className="flex items-center gap-2">
-          <Activity className="text-indigo-600" size={20} />
-          <h1 className="font-bold text-slate-800 text-lg hidden sm:block">Analysis Explorer Pro</h1>
+          <Activity className="text-indigo-600 dark:text-indigo-400" size={20} />
+          <h1 className="font-bold text-slate-800 dark:text-slate-100 text-lg hidden sm:block">Analysis Explorer Pro</h1>
         </div>
-        <div className="flex overflow-x-auto whitespace-nowrap bg-slate-100 p-1.5 rounded-lg border border-slate-200 gap-1.5 scrollbar-hide">
-          {['folge', 'reihe', 'potenzreihe', 'stetigkeit', 'lipschitz', 'ableitung', 'integral', 'multivar'].map(m => (
-            <button key={m} onClick={() => handleMode(m)} className={`px-3 py-1.5 text-xs font-bold rounded-md capitalize transition-colors ${mode === m ? 'bg-white shadow-md text-indigo-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'}`}>
-              {m === 'lipschitz' ? 'Lipschitz' : m === 'multivar' ? 'Diff. (Rⁿ)' : m}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="flex overflow-x-auto whitespace-nowrap bg-slate-100 dark:bg-slate-700 p-1.5 rounded-lg border border-slate-200 dark:border-slate-600 gap-1.5 scrollbar-hide">
+            {['folge', 'reihe', 'potenzreihe', 'stetigkeit', 'lipschitz', 'ableitung', 'integral', 'multivar'].map(m => (
+              <button key={m} onClick={() => handleMode(m)} className={`px-3 py-1.5 text-xs font-bold rounded-md capitalize transition-colors ${mode === m ? 'bg-white dark:bg-slate-600 shadow-md text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'}`}>
+                {m === 'lipschitz' ? 'Lipschitz' : m === 'multivar' ? 'Diff. (Rⁿ)' : m}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title={darkMode ? 'Heller Modus' : 'Dunkler Modus'}>
+            {darkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-600" />}
+          </button>
         </div>
       </header>
 
+      {/* 1.5 SUB-TAB NAVIGATION */}
+      {SUB_TABS[mode] && (
+        <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-0 shrink-0 shadow-sm z-15">
+          <div className="flex overflow-x-auto gap-0 scrollbar-hide max-w-5xl mx-auto">
+            {SUB_TABS[mode].map(t => (
+              <button key={t.id} onClick={() => setSubTab(t.id)} className={`px-4 py-2.5 text-xs font-bold transition-colors whitespace-nowrap border-b-[3px] ${subTab === t.id ? 'border-indigo-600 dark:border-indigo-400 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/20' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300'}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 2. CONTROLS BAR */}
-      <div className="bg-white border-b border-slate-200 p-4 shrink-0 shadow-sm z-10 flex flex-col gap-4">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 shrink-0 shadow-sm z-10 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row gap-4 items-center">
           {mode !== 'multivar' ? (
             <div className="flex bg-slate-200 p-1.5 rounded-xl w-full md:w-64 shrink-0">
@@ -1254,27 +1324,35 @@ export default function App() {
       </main>
 
       {/* 2.5 DEFINITION PANEL (MOVED BELOW GRAPH) */}
-      <div className="bg-indigo-50/70 border-b border-t border-indigo-100 p-4 shrink-0 shadow-inner">
+      <div className="bg-indigo-50/70 dark:bg-indigo-950/30 border-b border-t border-indigo-100 dark:border-indigo-900 p-4 shrink-0 shadow-inner">
         <div className="max-w-6xl mx-auto flex gap-4 items-start">
-          <BookOpen size={24} className="text-indigo-500 shrink-0 mt-0.5" />
+          <BookOpen size={24} className="text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />
           <div className="w-full overflow-hidden">
-            <h3 className="text-base font-bold text-indigo-900 mb-1"><TextWithMath text={DEFINITIONS[mode]?.title || ""} katexReady={katexReady} /></h3>
-            <div className="my-2 bg-white px-4 py-2 rounded-md shadow-sm border border-indigo-100 inline-block overflow-x-auto w-auto max-w-full text-indigo-900">
+            <h3 className="text-base font-bold text-indigo-900 dark:text-indigo-200 mb-1"><TextWithMath text={DEFINITIONS[mode]?.title || ""} katexReady={katexReady} /></h3>
+            <div className="my-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-md shadow-sm border border-indigo-100 dark:border-indigo-800 inline-block overflow-x-auto w-auto max-w-full text-indigo-900 dark:text-indigo-200">
               <BlockMath tex={DEFINITIONS[mode]?.math || ""} katexReady={katexReady} />
             </div>
-            <p className="text-sm text-indigo-700 leading-relaxed mt-1"><TextWithMath text={DEFINITIONS[mode]?.text || ""} katexReady={katexReady} /></p>
+            <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed mt-1"><TextWithMath text={DEFINITIONS[mode]?.text || ""} katexReady={katexReady} /></p>
           </div>
         </div>
       </div>
 
-      {/* 4. TEXT PANEL */}
-      <div className="bg-white border-t border-slate-200 flex flex-col z-20">
+      {/* 3. EDUCATIONAL CONTENT SECTION */}
+      <div className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
+          {/* Tab-specific educational content - lazy loaded */}
+          <EducationalContent mode={mode} subTab={subTab} katexReady={katexReady} x0={x0} y0={y0} theta={theta} comp={comp} darkMode={darkMode} setX0={setX0} setY0={setY0} setTheta={setTheta} />
+        </div>
+      </div>
 
-        <div className="flex border-b border-slate-200 bg-slate-50 sticky top-0 z-30 shadow-sm">
-          <button onClick={() => setBottomTab('calc')} className={`flex-1 py-5 text-lg font-bold flex items-center justify-center gap-2 transition-colors ${bottomTab === 'calc' ? 'bg-white text-indigo-700 border-b-2 border-indigo-500' : 'text-slate-500 hover:bg-slate-100'}`}>
+      {/* 4. TEXT PANEL */}
+      <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex flex-col z-20">
+
+        <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 sticky top-0 z-30 shadow-sm">
+          <button onClick={() => setBottomTab('calc')} className={`flex-1 py-5 text-lg font-bold flex items-center justify-center gap-2 transition-colors ${bottomTab === 'calc' ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 border-b-2 border-indigo-500' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
             <Calculator size={22} /> Live-Analyse: Was bedeutet das hier?
           </button>
-          <button onClick={() => setBottomTab('complex')} className={`flex-1 py-5 text-lg font-bold flex items-center justify-center gap-2 transition-colors ${bottomTab === 'complex' ? 'bg-white text-emerald-700 border-b-2 border-emerald-500' : 'text-slate-500 hover:bg-slate-100'}`}>
+          <button onClick={() => setBottomTab('complex')} className={`flex-1 py-5 text-lg font-bold flex items-center justify-center gap-2 transition-colors ${bottomTab === 'complex' ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 border-b-2 border-emerald-500' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
             <Globe size={22} /> <TextWithMath text="$\mathbb{R}$ vs. $\mathbb{C}$ (Dimensionen)" katexReady={katexReady} />
           </button>
         </div>
