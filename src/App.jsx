@@ -532,18 +532,22 @@ export default function App() {
               const xx = -R + 2*R*i/(N3-1);
               gx3.push(xx); gy3.push(yy); gz3.push(zz);
               const v = result.model.f(xx, yy, zz);
-              vals3.push(isNaN(v) ? 0 : v);
+              vals3.push(isNaN(v) || !isFinite(v) ? 0 : v);
             }
           }
         }
-        const isoVal = isNaN(fVal) ? 1 : fVal;
+        // Use full value range so multiple colorful isosurfaces are shown
+        const finiteVals = vals3.filter(v => v !== 0 || result.model.f(0,0,0) === 0);
+        const vMin = Math.min(...finiteVals);
+        const vMax = Math.max(...finiteVals);
         const S = 0.5;
         const gNorm3 = Math.sqrt(fxVal*fxVal + fyVal*fyVal + fzVal*fzVal);
         const traces3d = [
           { type: 'isosurface', x: gx3, y: gy3, z: gz3, value: vals3,
-            isomin: isoVal, isomax: isoVal, surface: { count: 1 },
-            colorscale: 'RdBu', opacity: 0.5, showscale: false,
-            name: `Niveaufläche f=${isoVal.toFixed(2)}`,
+            isomin: vMin, isomax: vMax, surface: { count: 6, fill: 0.9 },
+            colorscale: 'RdBu', opacity: 0.55, showscale: true,
+            colorbar: { thickness: 12, len: 0.6, x: 1.02 },
+            name: 'Niveauflächen',
             caps: { x: { show: false }, y: { show: false }, z: { show: false } } },
           { x: [x0], y: [y0], z: [z0], type: 'scatter3d', mode: 'markers',
             name: `(${x0.toFixed(1)},${y0.toFixed(1)},${z0.toFixed(1)})`,
