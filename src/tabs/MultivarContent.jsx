@@ -129,7 +129,7 @@ function GradientSection({ katexReady }) {
   const fn = funcs[funcId];
 
   const plotData = useMemo(() => {
-    const N = 40, R = 2;
+    const N = 30, R = 2;
     const xs = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
     const ys = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
     const z = ys.map(y => xs.map(x => fn.f(x, y)));
@@ -139,25 +139,29 @@ function GradientSection({ katexReady }) {
     const tRad = theta * Math.PI / 180;
     const vx = Math.cos(tRad), vy = Math.sin(tRad);
     const dv = gx*vx + gy*vy;
-    const S = 0.45;
+    const z0 = fn.f(x0, y0);
+    const S = 0.55;
+
+    // Cross-section curve along direction v (on the surface)
+    const nT = 24;
+    const tRange = Array.from({ length: nT }, (_, i) => -S + 2*S*i/(nT-1));
+    const curveX = tRange.map(t => x0 + t*vx);
+    const curveY = tRange.map(t => y0 + t*vy);
+    const curveZ = tRange.map(t => fn.f(x0 + t*vx, y0 + t*vy));
+    const tangentZ = tRange.map(t => z0 + t*dv); // linear tangent = directional derivative
 
     const traces = [
-      { x: xs, y: ys, z, type: 'contour', colorscale: 'RdBu', contours: { coloring: 'heatmap' }, showscale: false, name: 'f(x,y)', opacity: 0.9 },
-      { x: [x0, x0 + S*vx], y: [y0, y0 + S*vy], type: 'scatter', mode: 'lines', name: 'v (Richtung)', line: { color: '#f97316', width: 3 } },
-      { x: [x0], y: [y0], type: 'scatter', mode: 'markers', name: '(x₀,y₀)', marker: { color: '#ef4444', size: 9 }, showlegend: false },
+      { x: xs, y: ys, z, type: 'surface', colorscale: 'RdBu', opacity: 0.78, showscale: false, name: 'f(x,y)' },
+      { x: curveX, y: curveY, z: curveZ, type: 'scatter3d', mode: 'lines', name: 'Kurve in Richtg. v', line: { color: '#fb923c', width: 4 } },
+      { x: curveX, y: curveY, z: tangentZ, type: 'scatter3d', mode: 'lines', name: 'Tangente (D_v f)', line: { color: '#fbbf24', width: 4, dash: 'dash' } },
+      { x: [x0], y: [y0], z: [z0], type: 'scatter3d', mode: 'markers', name: '(x₀,y₀)', marker: { size: 7, color: '#ef4444' } },
+      { x: [x0, x0 + S*vx], y: [y0, y0 + S*vy], z: [z0, z0], type: 'scatter3d', mode: 'lines+markers', name: 'v (Richtg.)', line: { color: '#f97316', width: 5 }, marker: { size: [2, 8], color: '#f97316' } },
     ];
     if (gNorm > 1e-9) {
-      traces.push({ x: [x0, x0 + S*gx/gNorm], y: [y0, y0 + S*gy/gNorm], type: 'scatter', mode: 'lines', name: '∇f', line: { color: '#8b5cf6', width: 3 } });
+      traces.push({ x: [x0, x0 + S*gx/gNorm], y: [y0, y0 + S*gy/gNorm], z: [z0, z0], type: 'scatter3d', mode: 'lines+markers', name: '∇f (Gradient)', line: { color: '#8b5cf6', width: 5 }, marker: { size: [2, 8], color: '#8b5cf6' } });
     }
 
-    const annotations = [
-      { ax: x0, ay: y0, x: x0 + S*vx, y: y0 + S*vy, xref: 'x', yref: 'y', axref: 'x', ayref: 'y', showarrow: true, arrowhead: 3, arrowsize: 1.4, arrowwidth: 2.5, arrowcolor: '#f97316', text: '' },
-    ];
-    if (gNorm > 1e-9) {
-      annotations.push({ ax: x0, ay: y0, x: x0 + S*gx/gNorm, y: y0 + S*gy/gNorm, xref: 'x', yref: 'y', axref: 'x', ayref: 'y', showarrow: true, arrowhead: 3, arrowsize: 1.4, arrowwidth: 2.5, arrowcolor: '#8b5cf6', text: '' });
-    }
-
-    return { traces, annotations, gx, gy, gNorm, dv };
+    return { traces, gx, gy, gNorm, dv, z0 };
   }, [x0, y0, funcId, theta]);
 
   return (
@@ -206,15 +210,15 @@ function GradientSection({ katexReady }) {
         <PlotlyChart
           data={plotData.traces}
           layout={{
-            xaxis: { title: 'x', range: [-2.2, 2.2], gridcolor: 'rgba(148,163,184,0.2)' },
-            yaxis: { title: 'y', range: [-2.2, 2.2], gridcolor: 'rgba(148,163,184,0.2)', scaleanchor: 'x' },
-            legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(0,0,0,0)', font: { size: 11 } },
-            annotations: plotData.annotations,
-            height: 380,
+            scene: { xaxis: { title: 'x' }, yaxis: { title: 'y' }, zaxis: { title: 'f' }, camera: { eye: { x: 1.6, y: 1.6, z: 1.1 } } },
+            legend: { x: 0, y: 1, bgcolor: 'rgba(0,0,0,0)', font: { size: 11 } },
+            height: 440,
+            margin: { l: 0, r: 0, t: 20, b: 0 },
           }}
           style={{ width: '100%' }}
         />
         <div className="mt-2 text-sm text-slate-600 dark:text-slate-400 flex flex-wrap gap-4">
+          <span>f(x₀,y₀) = <strong className="text-red-600 dark:text-red-400">{plotData.z0.toFixed(3)}</strong></span>
           <span>∇f = <strong className="text-purple-600 dark:text-purple-400">({plotData.gx.toFixed(3)}, {plotData.gy.toFixed(3)})</strong></span>
           <span>|∇f| = <strong className="text-purple-600 dark:text-purple-400">{plotData.gNorm.toFixed(3)}</strong></span>
           <span>D_v f = <strong className="text-orange-600 dark:text-orange-400">{plotData.dv.toFixed(4)}</strong></span>
@@ -356,6 +360,47 @@ function TotalSection({ katexReady }) {
           <TextWithMath text="Gegenbeispiel partiell $\not\Rightarrow$ total: $f(x,y) = xy/(x^2+y^2)$ — partiell diff. aber unstetig bei $(0,0)$" katexReady={katexReady} />
         </p>
       </div>
+
+      <Card type="definition" title="Hesse-Matrix" katexReady={katexReady}>
+        <TextWithMath text="Für $f: D \to \mathbb{R}$ mit $D \subseteq \mathbb{R}^n$ offen und $f \in C^2$ ist die **Hesse-Matrix** (oder Hessian) in $x_0$ definiert als die Matrix der zweiten partiellen Ableitungen:" katexReady={katexReady} />
+        <FormulaCard math="Hf(x_0) \;=\; \begin{pmatrix} \dfrac{\partial^2 f}{\partial x_1^2} & \dfrac{\partial^2 f}{\partial x_1 \partial x_2} & \cdots & \dfrac{\partial^2 f}{\partial x_1 \partial x_n} \\ \dfrac{\partial^2 f}{\partial x_2 \partial x_1} & \dfrac{\partial^2 f}{\partial x_2^2} & \cdots & \dfrac{\partial^2 f}{\partial x_2 \partial x_n} \\ \vdots & \vdots & \ddots & \vdots \\ \dfrac{\partial^2 f}{\partial x_n \partial x_1} & \cdots & \cdots & \dfrac{\partial^2 f}{\partial x_n^2} \end{pmatrix} \in \mathbb{R}^{n \times n}" katexReady={katexReady} />
+        <TextWithMath text="Für $f \in C^2$ ist $Hf(x_0)$ **symmetrisch** (Satz von Schwarz: $\partial_{x_i}\partial_{x_j} f = \partial_{x_j}\partial_{x_i} f$)." katexReady={katexReady} />
+      </Card>
+
+      <Card type="theorem" title="Zweite-Ableitungs-Test (Hesse-Kriterium)" katexReady={katexReady}>
+        <TextWithMath text="Sei $\nabla f(x_0) = 0$ (kritischer Punkt). Dann gilt für $f \in C^2$:" katexReady={katexReady} />
+        <div className="overflow-x-auto mt-2">
+          <table className="text-sm border-collapse w-full min-w-[360px]">
+            <thead>
+              <tr className="border-b border-slate-300 dark:border-slate-600">
+                <th className="text-left py-1.5 px-3 text-slate-500 dark:text-slate-400 font-semibold">Bedingung an $Hf(x_0)$</th>
+                <th className="py-1.5 px-3 text-indigo-600 dark:text-indigo-400 font-bold text-left">Schluss</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-700 dark:text-slate-300">
+              {[
+                ['positiv definit ($Hf \succ 0$)', 'lokales Minimum'],
+                ['negativ definit ($Hf \prec 0$)', 'lokales Maximum'],
+                ['indefinit (pos. u. neg. EW)', 'Sattelpunkt'],
+                ['semidefinit ($\det Hf = 0$)', 'keine Aussage möglich'],
+              ].map(([cond, res], i) => (
+                <tr key={i} className={i % 2 === 0 ? 'bg-slate-50 dark:bg-slate-700/30' : ''}>
+                  <td className="py-1.5 px-3"><TextWithMath text={cond} katexReady={katexReady} /></td>
+                  <td className="py-1.5 px-3 font-semibold"><TextWithMath text={res} katexReady={katexReady} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <TextWithMath text="**Praktisch:** Für $n=2$ reicht $\det Hf > 0$ und $f_{xx} > 0$ (Minimum) bzw. $f_{xx} < 0$ (Maximum)." katexReady={katexReady} />
+      </Card>
+
+      <Card type="example" title="Beispiel: Kritische Punkte von $f(x,y) = x^3 - 3xy + y^3$" katexReady={katexReady}>
+        <TextWithMath text="$\nabla f = (3x^2 - 3y,\; 3y^2 - 3x) = 0$ liefert $(x,y) \in \{(0,0),\, (1,1)\}$." katexReady={katexReady} />
+        <FormulaCard math="Hf(x,y) = \begin{pmatrix} 6x & -3 \\ -3 & 6y \end{pmatrix}" katexReady={katexReady} />
+        <TextWithMath text="Bei $(0,0)$: $\det H = 36 \cdot 0 - 9 = -9 < 0$ → **Sattelpunkt**." katexReady={katexReady} />
+        <TextWithMath text="Bei $(1,1)$: $\det H = 36 - 9 = 27 > 0$ und $f_{xx}=6>0$ → **lokales Minimum**." katexReady={katexReady} />
+      </Card>
     </div>
   );
 }
@@ -378,7 +423,7 @@ function MwsRnSection({ katexReady }) {
   const fn = funcs[funcId];
 
   const plotData = useMemo(() => {
-    const N = 40, R = 2;
+    const N = 30, R = 2;
     const xs = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
     const ys = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
     const z = ys.map(y => xs.map(x => fn.f(x, y)));
@@ -395,24 +440,26 @@ function MwsRnSection({ katexReady }) {
     const xxi = ax + xiT*dx, yxi = ay + xiT*dy;
     const gxxi = fn.fx(xxi, yxi), gyxi = fn.fy(xxi, yxi);
     const gN = Math.sqrt(gxxi*gxxi + gyxi*gyxi);
-    const S = 0.38;
+    const S = 0.45;
 
-    const lineXs = Array.from({ length: 20 }, (_, i) => ax + dx*i/19);
-    const lineYs = Array.from({ length: 20 }, (_, i) => ay + dy*i/19);
+    // Path A→B on the surface
+    const nPath = 30;
+    const pathX = Array.from({ length: nPath }, (_, i) => ax + dx*i/(nPath-1));
+    const pathY = Array.from({ length: nPath }, (_, i) => ay + dy*i/(nPath-1));
+    const pathZ = pathX.map((px, i) => fn.f(px, pathY[i]));
+    const zxi = fn.f(xxi, yxi);
 
     const traces = [
-      { x: xs, y: ys, z, type: 'contour', colorscale: 'Blues', contours: { coloring: 'heatmap' }, showscale: false, name: 'f(x,y)', opacity: 0.9 },
-      { x: lineXs, y: lineYs, type: 'scatter', mode: 'lines', name: '[A, B]', line: { color: '#ef4444', width: 2.5 } },
-      { x: [ax, bx], y: [ay, by], type: 'scatter', mode: 'markers+text', text: ['A', 'B'], textposition: 'top center', name: 'A, B', marker: { color: '#ef4444', size: 10 }, textfont: { color: '#ef4444', size: 13 } },
-      { x: [xxi], y: [yxi], type: 'scatter', mode: 'markers+text', text: ['ξ'], textposition: 'top right', name: 'ξ (MWS)', marker: { color: '#22c55e', size: 10, symbol: 'diamond' }, textfont: { color: '#22c55e', size: 13 } },
+      { x: xs, y: ys, z, type: 'surface', colorscale: 'Blues', opacity: 0.78, showscale: false, name: 'f(x,y)' },
+      { x: pathX, y: pathY, z: pathZ, type: 'scatter3d', mode: 'lines', name: '[A, B] auf f', line: { color: '#ef4444', width: 5 } },
+      { x: [ax, bx], y: [ay, by], z: [fa, fb], type: 'scatter3d', mode: 'markers+text', text: ['A', 'B'], name: 'A, B', marker: { color: '#ef4444', size: 7 }, textfont: { color: '#ef4444', size: 12 } },
+      { x: [xxi], y: [yxi], z: [zxi], type: 'scatter3d', mode: 'markers+text', text: ['ξ'], name: 'ξ (MWS)', marker: { color: '#22c55e', size: 8, symbol: 'diamond' }, textfont: { color: '#22c55e', size: 12 } },
     ];
-    const annotations = [];
     if (gN > 1e-9) {
-      annotations.push({ ax: xxi, ay: yxi, x: xxi + S*gxxi/gN, y: yxi + S*gyxi/gN, xref: 'x', yref: 'y', axref: 'x', ayref: 'y', showarrow: true, arrowhead: 3, arrowsize: 1.4, arrowwidth: 2.5, arrowcolor: '#8b5cf6', text: '' });
-      traces.push({ x: [xxi, xxi + S*gxxi/gN], y: [yxi, yxi + S*gyxi/gN], type: 'scatter', mode: 'lines', name: '∇f(ξ)', line: { color: '#8b5cf6', width: 2.5 } });
+      traces.push({ x: [xxi, xxi + S*gxxi/gN], y: [yxi, yxi + S*gyxi/gN], z: [zxi, zxi], type: 'scatter3d', mode: 'lines+markers', name: '∇f(ξ)', line: { color: '#8b5cf6', width: 5 }, marker: { size: [2, 8], color: '#8b5cf6' } });
     }
     const gradDot = gxxi*dx + gyxi*dy;
-    return { traces, annotations, fa, fb, diff, xxi, yxi, gradDot };
+    return { traces, fa, fb, diff, xxi, yxi, gradDot };
   }, [ax, ay, bx, by, funcId]);
 
   return (
@@ -456,11 +503,10 @@ function MwsRnSection({ katexReady }) {
         <PlotlyChart
           data={plotData.traces}
           layout={{
-            xaxis: { title: 'x', range: [-2.2, 2.2], gridcolor: 'rgba(148,163,184,0.2)' },
-            yaxis: { title: 'y', range: [-2.2, 2.2], gridcolor: 'rgba(148,163,184,0.2)', scaleanchor: 'x' },
-            legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(0,0,0,0)', font: { size: 11 } },
-            annotations: plotData.annotations,
-            height: 380,
+            scene: { xaxis: { title: 'x' }, yaxis: { title: 'y' }, zaxis: { title: 'f' }, camera: { eye: { x: 1.6, y: 1.6, z: 1.2 } } },
+            legend: { x: 0, y: 1, bgcolor: 'rgba(0,0,0,0)', font: { size: 11 } },
+            height: 430,
+            margin: { l: 0, r: 0, t: 20, b: 0 },
           }}
           style={{ width: '100%' }}
         />
