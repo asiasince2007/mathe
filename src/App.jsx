@@ -1000,14 +1000,12 @@ export default function App() {
       <main className="w-full shrink-0 relative bg-slate-100 p-2 md:p-6 flex flex-col items-center">
         <div className="w-full max-w-5xl aspect-[21/9] max-h-[65vh] min-h-[400px] border border-slate-200 rounded-2xl shadow-xl relative overflow-hidden bg-white">
 
-          {!comp.isMultivar && (
-            <div className="absolute top-5 left-6 bg-white/90 backdrop-blur border border-slate-200 px-5 py-2.5 rounded-xl shadow-md z-10 flex flex-col gap-1">
-              <span className="font-bold text-slate-800 text-base">
-                {domainMode === 'komplex' && mode !== 'integral' ? `Komplexe Ebene (${mode})` : comp.model?.name.replace(/\$/g, '')}
-              </span>
-              {(domainMode === 'reell' || mode === 'integral') && <span className="font-serif text-indigo-700 font-bold tracking-wide text-sm"><TextWithMath text={comp.model?.formula} katexReady={katexReady} /></span>}
-            </div>
-          )}
+          <div className="absolute top-5 left-6 bg-white/90 backdrop-blur border border-slate-200 px-5 py-2.5 rounded-xl shadow-md z-10 flex flex-col gap-1">
+            <span className="font-bold text-slate-800 text-base">
+              {domainMode === 'komplex' && mode !== 'integral' ? `Komplexe Ebene (${mode})` : comp.model?.name.replace(/\$/g, '')}
+            </span>
+            {(domainMode === 'reell' || mode === 'integral' || comp.isMultivar) && <span className="font-serif text-indigo-700 font-bold tracking-wide text-sm"><TextWithMath text={comp.model?.formula} katexReady={katexReady} /></span>}
+          </div>
 
           {/* DYNAMIC SHORT EVALUATION BADGE (TOP RIGHT) */}
           {!comp.isMultivar && (
@@ -1021,7 +1019,7 @@ export default function App() {
             <div className="w-full h-full">
               <PlotlyChart
                 data={comp.traces3d || []}
-                layout={{ scene: { xaxis: { title: 'x' }, yaxis: { title: 'y' }, zaxis: { title: 'f(x,y)' }, camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } } }, legend: { x: 0, y: 1, bgcolor: 'rgba(0,0,0,0)', font: { size: 11 } }, margin: { l: 0, r: 0, t: 0, b: 0 } }}
+                layout={{ scene: { xaxis: { title: 'x' }, yaxis: { title: 'y' }, zaxis: { title: 'f(x,y)' }, camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } } }, legend: { x: 1, y: 1, xanchor: 'right', bgcolor: 'rgba(255,255,255,0.7)', font: { size: 11 } }, margin: { l: 0, r: 0, t: 0, b: 0 } }}
                 style={{ width: '100%', height: '100%' }}
               />
             </div>
