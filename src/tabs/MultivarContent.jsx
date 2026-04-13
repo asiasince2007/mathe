@@ -531,8 +531,8 @@ function MwsRnSection({ katexReady }) {
           <thead>
             <tr className="border-b-2 border-slate-300 dark:border-slate-600">
               <th className="text-left py-2 px-3 text-slate-500 dark:text-slate-400 font-semibold w-1/4"></th>
-              <th className="py-2 px-3 text-indigo-600 dark:text-indigo-400 font-bold text-left">MWS in $\mathbb{R}^1$</th>
-              <th className="py-2 px-3 text-green-600 dark:text-green-400 font-bold text-left">MWS in $\mathbb{R}^n$</th>
+              <th className="py-2 px-3 text-indigo-600 dark:text-indigo-400 font-bold text-left"><TextWithMath text="MWS in $\mathbb{R}^1$" katexReady={katexReady} /></th>
+              <th className="py-2 px-3 text-green-600 dark:text-green-400 font-bold text-left"><TextWithMath text="MWS in $\mathbb{R}^n$" katexReady={katexReady} /></th>
             </tr>
           </thead>
           <tbody className="text-slate-700 dark:text-slate-300">
