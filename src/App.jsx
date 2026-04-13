@@ -203,11 +203,6 @@ const DEFINITIONS = {
     math: "$$ f'(x_*) = \\lim_{h \\to 0} \\frac{f(x_* + h) - f(x_*)}{h} $$",
     text: "Die Ableitung ist der Grenzwert der Sekantensteigung, wenn sich der Abstand $h$ der beiden Punkte auf der $x$-Achse der Null nähert."
   },
-  'multivar': {
-    title: "Definition: Totale Differenzierbarkeit in $\\mathbb{R}^n$",
-    math: "$$ f(\\mathbf{x}_* + \\mathbf{h}) = f(\\mathbf{x}_*) + Df(\\mathbf{x}_*) \\cdot \\mathbf{h} + o(\\|\\mathbf{h}\\|) $$",
-    text: "Eine Funktion $f: \\mathbb{R}^n \\to \\mathbb{R}$ ist total differenzierbar, wenn eine lineare Abbildung $Df$ existiert, die den Funktionswert lokal perfekt approximiert. Die Existenz aller partiellen Ableitungen allein reicht NICHT aus!"
-  }
 };
 
 // --- Robuster Text- und Mathe-Parser ---
@@ -325,18 +320,39 @@ const PotenzreiheContent = React.lazy(() => import('./tabs/PotenzreiheContent'))
 const StetigkeitContent = React.lazy(() => import('./tabs/StetigkeitContent'));
 const IntegralContent = React.lazy(() => import('./tabs/IntegralContent'));
 
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, info) { console.error('Tab render error:', error, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+          <div className="text-4xl mb-3">⚠️</div>
+          <div className="font-semibold mb-1">Inhalt konnte nicht geladen werden</div>
+          <div className="text-xs font-mono opacity-60">{String(this.state.error?.message || '')}</div>
+          <button onClick={() => this.setState({ hasError: false, error: null })} className="mt-4 px-4 py-1.5 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Erneut versuchen</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function EducationalContent({ mode, subTab, katexReady, x0, y0, theta, comp, darkMode, setX0, setY0, setTheta }) {
   const props = { subTab, katexReady, x0, y0, theta, comp, darkMode, setX0, setY0, setTheta };
   return (
-    <React.Suspense fallback={<div className="text-center py-8 text-slate-400">Inhalte werden geladen...</div>}>
-      {mode === 'multivar' && <MultivarContent {...props} />}
-      {mode === 'ableitung' && <AbleitungContent {...props} />}
-      {mode === 'folge' && <FolgeContent {...props} />}
-      {mode === 'reihe' && <ReiheContent {...props} />}
-      {mode === 'potenzreihe' && <PotenzreiheContent {...props} />}
-      {mode === 'stetigkeit' && <StetigkeitContent {...props} />}
-      {mode === 'integral' && <IntegralContent {...props} />}
-    </React.Suspense>
+    <ErrorBoundary key={mode}>
+      <React.Suspense fallback={<div className="text-center py-8 text-slate-400">Inhalte werden geladen...</div>}>
+        {mode === 'multivar' && <MultivarContent {...props} />}
+        {mode === 'ableitung' && <AbleitungContent {...props} />}
+        {mode === 'folge' && <FolgeContent {...props} />}
+        {mode === 'reihe' && <ReiheContent {...props} />}
+        {mode === 'potenzreihe' && <PotenzreiheContent {...props} />}
+        {mode === 'stetigkeit' && <StetigkeitContent {...props} />}
+        {mode === 'integral' && <IntegralContent {...props} />}
+      </React.Suspense>
+    </ErrorBoundary>
   );
 }
 
