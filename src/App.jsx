@@ -1000,18 +1000,22 @@ export default function App() {
       <main className="w-full shrink-0 relative bg-slate-100 p-2 md:p-6 flex flex-col items-center">
         <div className="w-full max-w-5xl aspect-[21/9] max-h-[65vh] min-h-[400px] border border-slate-200 rounded-2xl shadow-xl relative overflow-hidden bg-white">
 
-          <div className="absolute top-5 left-6 bg-white/90 backdrop-blur border border-slate-200 px-5 py-2.5 rounded-xl shadow-md z-10 flex flex-col gap-1">
-            <span className="font-bold text-slate-800 text-base">
-              {domainMode === 'komplex' && mode !== 'integral' ? `Komplexe Ebene (${mode})` : comp.model?.name.replace(/\$/g, '')}
-            </span>
-            {(domainMode === 'reell' || mode === 'integral') && <span className="font-serif text-indigo-700 font-bold tracking-wide text-sm"><TextWithMath text={comp.model?.formula} katexReady={katexReady} /></span>}
-          </div>
+          {!comp.isMultivar && (
+            <div className="absolute top-5 left-6 bg-white/90 backdrop-blur border border-slate-200 px-5 py-2.5 rounded-xl shadow-md z-10 flex flex-col gap-1">
+              <span className="font-bold text-slate-800 text-base">
+                {domainMode === 'komplex' && mode !== 'integral' ? `Komplexe Ebene (${mode})` : comp.model?.name.replace(/\$/g, '')}
+              </span>
+              {(domainMode === 'reell' || mode === 'integral') && <span className="font-serif text-indigo-700 font-bold tracking-wide text-sm"><TextWithMath text={comp.model?.formula} katexReady={katexReady} /></span>}
+            </div>
+          )}
 
           {/* DYNAMIC SHORT EVALUATION BADGE (TOP RIGHT) */}
-          <div className={`absolute top-5 right-6 backdrop-blur border px-4 py-2.5 rounded-xl shadow-md z-10 flex items-center gap-2 font-bold text-sm ${typeColors[shortEval.type]}`}>
-            <TypeIcon size={20} className="shrink-0" />
-            <TextWithMath text={shortEval.text} katexReady={katexReady} />
-          </div>
+          {!comp.isMultivar && (
+            <div className={`absolute top-5 right-6 backdrop-blur border px-4 py-2.5 rounded-xl shadow-md z-10 flex items-center gap-2 font-bold text-sm ${typeColors[shortEval.type]}`}>
+              <TypeIcon size={20} className="shrink-0" />
+              <TextWithMath text={shortEval.text} katexReady={katexReady} />
+            </div>
+          )}
 
           {comp.isMultivar ? (
             <div className="w-full h-full">
