@@ -311,6 +311,8 @@ const Slider = ({ label, val, min, max, step, setFn, katexReady }) => (
   </div>
 );
 
+import PlotlyChart from './components/PlotlyChart';
+
 // Lazy-loaded educational content for each tab
 const MultivarContent = React.lazy(() => import('./tabs/MultivarContent'));
 const AbleitungContent = React.lazy(() => import('./tabs/AbleitungContent'));
@@ -491,23 +493,9 @@ export default function App() {
 
     // === MULTIVARIATE LOGIK ===
     if (result.isMultivar) {
-      const GRID = 40;
-      const R = 2.5;
+      const N = 35, R = 2.5;
       result.X_MIN = -R; result.X_MAX = R;
       result.Y_MIN = -R; result.Y_MAX = R;
-
-      let heatmap = [];
-      let zMin = Infinity, zMax = -Infinity;
-      for (let iy = 0; iy < GRID; iy++) {
-        for (let ix = 0; ix < GRID; ix++) {
-          const gx = -R + (ix + 0.5) * (2 * R / GRID);
-          const gy = -R + (iy + 0.5) * (2 * R / GRID);
-          const z = result.model.f(gx, gy);
-          if (isFinite(z)) { zMin = Math.min(zMin, z); zMax = Math.max(zMax, z); }
-          heatmap.push({ ix, iy, gx, gy, z });
-        }
-      }
-      result.heatmap = { cells: heatmap, zMin, zMax, grid: GRID, range: R };
 
       const fVal = result.model.f(x0, y0);
       const fxVal = result.model.fx(x0, y0);
@@ -522,8 +510,24 @@ export default function App() {
       const h = 0.001;
       const numDir = (result.model.f(x0 + h * Math.cos(theta), y0 + h * Math.sin(theta)) - fVal) / h;
       result.numDirDeriv = numDir;
-
       result.mvTotalDiff = result.model.totalDiff;
+
+      // Build 3D surface + vector traces
+      const xs3d = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
+      const ys3d = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
+      const z3d = ys3d.map(y => xs3d.map(x => result.model.f(x, y)));
+      const gNorm = Math.sqrt(fxVal*fxVal + fyVal*fyVal);
+      const S = 0.5;
+      const vx = Math.cos(theta), vy = Math.sin(theta);
+      const traces3d = [
+        { x: xs3d, y: ys3d, z: z3d, type: 'surface', colorscale: 'RdBu', opacity: 0.82, showscale: false, name: 'f(x,y)' },
+        { x: [x0], y: [y0], z: [fVal], type: 'scatter3d', mode: 'markers', name: `(${x0.toFixed(1)}, ${y0.toFixed(1)})`, marker: { size: 8, color: '#ef4444' } },
+        { x: [x0, x0 + S*vx], y: [y0, y0 + S*vy], z: [fVal, fVal], type: 'scatter3d', mode: 'lines+markers', name: 'Richtg. θ', line: { color: '#10b981', width: 5 }, marker: { size: [2, 8], color: '#10b981' } },
+      ];
+      if (gNorm > 1e-9) {
+        traces3d.push({ x: [x0, x0 + S*fxVal/gNorm], y: [y0, y0 + S*fyVal/gNorm], z: [fVal, fVal], type: 'scatter3d', mode: 'lines+markers', name: '∇f (Gradient)', line: { color: '#8b5cf6', width: 5 }, marker: { size: [2, 8], color: '#8b5cf6' } });
+      }
+      result.traces3d = traces3d;
 
       return result;
     }
@@ -1009,6 +1013,15 @@ export default function App() {
             <TextWithMath text={shortEval.text} katexReady={katexReady} />
           </div>
 
+          {comp.isMultivar ? (
+            <div className="w-full h-full">
+              <PlotlyChart
+                data={comp.traces3d || []}
+                layout={{ scene: { xaxis: { title: 'x' }, yaxis: { title: 'y' }, zaxis: { title: 'f(x,y)' }, camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } } }, legend: { x: 0, y: 1, bgcolor: 'rgba(0,0,0,0)', font: { size: 11 } }, margin: { l: 0, r: 0, t: 0, b: 0 } }}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </div>
+          ) : (
           <div className="w-full h-full p-2">
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="w-full h-full overflow-visible">
               <defs>
@@ -1307,6 +1320,7 @@ export default function App() {
               )}
             </svg>
           </div>
+          )}
 
           <div className="bg-slate-50 border-t border-slate-200 p-4 px-6 flex justify-between items-center text-base">
             <div className="flex gap-6 items-center">
