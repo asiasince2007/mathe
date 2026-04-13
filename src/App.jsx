@@ -93,6 +93,13 @@ const MULTIVAR = [
   { id: 'mv_abs', name: 'Betrags-Summe', tag: 'nicht total diff.', formula: '$f(x,y) = |x| + |y|$', f: (x, y) => Math.abs(x) + Math.abs(y), fx: (x, y) => { void y; return x > 0 ? 1 : (x < 0 ? -1 : NaN); }, fy: (x, y) => { void x; return y > 0 ? 1 : (y < 0 ? -1 : NaN); }, totalDiff: false },
   { id: 'mv_classic', name: 'Standardgegenbeispiel', tag: 'nur partiell diff.', formula: '$f(x,y) = \\frac{xy}{x^2+y^2}$', f: (x, y) => (x * x + y * y) !== 0 ? (x * y) / (x * x + y * y) : 0, fx: (x, y) => { const d = x * x + y * y; return d !== 0 ? (y * (y * y - x * x)) / (d * d) : NaN; }, fy: (x, y) => { const d = x * x + y * y; return d !== 0 ? (x * (x * x - y * y)) / (d * d) : NaN; }, totalDiff: false },
   { id: 'mv_sqrt', name: 'Wurzel-Produkt', tag: 'nur partiell diff.', formula: '$f(x,y) = \\sqrt{|xy|}$', f: (x, y) => Math.sqrt(Math.abs(x * y)), fx: (x, y) => { const p = Math.abs(x * y); return p > 0.0001 ? (y * Math.sign(x * y)) / (2 * Math.sqrt(p)) : 0; }, fy: (x, y) => { const p = Math.abs(x * y); return p > 0.0001 ? (x * Math.sign(x * y)) / (2 * Math.sqrt(p)) : 0; }, totalDiff: false },
+  // --- f(x,y,z) Funktionen ---
+  { id: 'mv_sphere', name: 'Kugel-Funktion', tag: 'total differenzierbar', is3var: true, formula: '$f(x,y,z) = x^2+y^2+z^2$', f: (x,y,z) => x*x+y*y+z*z, fx: (x,y,z) => { void y; void z; return 2*x; }, fy: (x,y,z) => { void x; void z; return 2*y; }, fz: (x,y,z) => { void x; void y; return 2*z; }, totalDiff: true },
+  { id: 'mv_hyperboloid', name: 'Hyperboloid', tag: 'total differenzierbar', is3var: true, formula: '$f(x,y,z) = x^2+y^2-z^2$', f: (x,y,z) => x*x+y*y-z*z, fx: (x,y,z) => { void y; void z; return 2*x; }, fy: (x,y,z) => { void x; void z; return 2*y; }, fz: (x,y,z) => { void x; void y; return -2*z; }, totalDiff: true },
+  { id: 'mv_coulomb', name: 'Coulomb-Potential', tag: 'total differenzierbar', is3var: true, formula: '$f(x,y,z) = \\frac{1}{\\sqrt{x^2+y^2+z^2}}$', f: (x,y,z) => { const r2=x*x+y*y+z*z; return r2>0.0001 ? 1/Math.sqrt(r2) : NaN; }, fx: (x,y,z) => { const r2=x*x+y*y+z*z; return r2>0.0001 ? -x/Math.pow(r2,1.5) : NaN; }, fy: (x,y,z) => { const r2=x*x+y*y+z*z; return r2>0.0001 ? -y/Math.pow(r2,1.5) : NaN; }, fz: (x,y,z) => { const r2=x*x+y*y+z*z; return r2>0.0001 ? -z/Math.pow(r2,1.5) : NaN; }, totalDiff: true },
+  { id: 'mv_gauss3d', name: 'Gauß-Potential (R³)', tag: 'total differenzierbar', is3var: true, formula: '$f(x,y,z) = e^{-(x^2+y^2+z^2)}$', f: (x,y,z) => Math.exp(-(x*x+y*y+z*z)), fx: (x,y,z) => -2*x*Math.exp(-(x*x+y*y+z*z)), fy: (x,y,z) => -2*y*Math.exp(-(x*x+y*y+z*z)), fz: (x,y,z) => -2*z*Math.exp(-(x*x+y*y+z*z)), totalDiff: true },
+  { id: 'mv_linear3d', name: 'Lineare Fkt. (R³)', tag: 'total differenzierbar', is3var: true, formula: '$f(x,y,z) = x+2y+3z$', f: (x,y,z) => x+2*y+3*z, fx: () => 1, fy: () => 2, fz: () => 3, totalDiff: true },
+  { id: 'mv_ellipsoid', name: 'Ellipsoid', tag: 'total differenzierbar', is3var: true, formula: '$f(x,y,z) = \\frac{x^2}{4}+y^2+\\frac{z^2}{9}$', f: (x,y,z) => x*x/4+y*y+z*z/9, fx: (x,y,z) => { void y; void z; return x/2; }, fy: (x,y,z) => { void x; void z; return 2*y; }, fz: (x,y,z) => { void x; void y; return 2*z/9; }, totalDiff: true },
 ];
 
 const getTag = (model, mode) => {
@@ -165,6 +172,12 @@ const EXPLANATIONS = {
   'mv_abs': "**ACHTUNG KANTEN!** Entlang der Achsen $x=0$ und $y=0$ entstehen Kanten. Die partiellen Ableitungen existieren dort nicht, also ist die Funktion dort nicht total differenzierbar.",
   'mv_classic': "**DAS Standardgegenbeispiel!** Die partiellen Ableitungen $f_x(0,0) = 0$ und $f_y(0,0) = 0$ existieren beide. Aber entlang $y=x$ ist $f = \\frac{1}{2}$, die Linearisierung sagt aber $0$ voraus. NICHT total differenzierbar!",
   'mv_sqrt': "Die partiellen Ableitungen existieren am Ursprung ($f_x(0,0) = f_y(0,0) = 0$), aber entlang der Diagonalen $y=x$ wächst $f = |x|$ mit Knick. Nicht total differenzierbar bei $(0,0)$!",
+  'mv_sphere': "Die Kugelfunktion. Level-Mengen $\\{f=c\\}$ sind Kugeloberflächen mit Radius $\\sqrt{c}$. Gradient $\\nabla f = (2x,2y,2z)$ zeigt immer radial nach außen.",
+  'mv_hyperboloid': "Level-Mengen: $f=c>0$ sind einschalige Hyperboloide, $f=0$ ist ein Doppelkegelmantel, $f=c<0$ sind zweischalige Hyperboloide.",
+  'mv_coulomb': "Das Coulomb-Potential der Elektrostatik. Kugelsymmetrisch, singulär im Ursprung. Der Gradient $\\nabla f = -\\mathbf{r}/|\\mathbf{r}|^3$ zeigt radial nach innen.",
+  'mv_gauss3d': "Gauß'sches 3D-Potential. Rotationssymmetrisch um den Ursprung. Maximum bei $(0,0,0)$, Level-Mengen sind Kugeloberflächen.",
+  'mv_linear3d': "Lineare Funktion in $\\mathbb{R}^3$. Konstanter Gradient $\\nabla f = (1,2,3)$. Level-Mengen sind parallele Hyperebenen $x+2y+3z=c$.",
+  'mv_ellipsoid': "Ellipsoid-Funktion. Die Halbachsen $a=2$, $b=1$, $c=3$ ergeben gestreckte Niveauflächen. Gradient zeigt senkrecht auf die Ellipsoidflächen.",
 };
 
 const DEFINITIONS = {
@@ -376,6 +389,7 @@ export default function App() {
   const [bottomTab, setBottomTab] = useState('calc');
   const [sumType, setSumType] = useState('mid'); // 'mid', 'lower', 'upper'
   const [y0, setY0] = useState(0.5);
+  const [z0, setZ0] = useState(0.5);
   const [theta, setTheta] = useState(0.785); // pi/4
   const [darkMode, setDarkMode] = useState(false);
   const [subTab, setSubTab] = useState(null);
@@ -493,10 +507,59 @@ export default function App() {
 
     // === MULTIVARIATE LOGIK ===
     if (result.isMultivar) {
-      const N = 35, R = 2.5;
+      const R = 2.5;
       result.X_MIN = -R; result.X_MAX = R;
       result.Y_MIN = -R; result.Y_MAX = R;
+      result.mvTotalDiff = result.model.totalDiff;
 
+      if (result.model.is3var) {
+        // --- f(x,y,z): isosurface visualization ---
+        const fVal = result.model.f(x0, y0, z0);
+        const fxVal = result.model.fx(x0, y0, z0);
+        const fyVal = result.model.fy(x0, y0, z0);
+        const fzVal = result.model.fz(x0, y0, z0);
+        result.gradient = { fx: fxVal, fy: fyVal, fz: fzVal, fVal };
+        result.limit = fVal;
+        result.limitText = !isNaN(fVal) ? `$f(${x0.toFixed(1)},${y0.toFixed(1)},${z0.toFixed(1)}) = ${fVal.toFixed(4)}$` : "Undefiniert";
+
+        const N3 = 16;
+        const gx3=[], gy3=[], gz3=[], vals3=[];
+        for (let k=0; k<N3; k++) {
+          const zz = -R + 2*R*k/(N3-1);
+          for (let j=0; j<N3; j++) {
+            const yy = -R + 2*R*j/(N3-1);
+            for (let i=0; i<N3; i++) {
+              const xx = -R + 2*R*i/(N3-1);
+              gx3.push(xx); gy3.push(yy); gz3.push(zz);
+              const v = result.model.f(xx, yy, zz);
+              vals3.push(isNaN(v) ? 0 : v);
+            }
+          }
+        }
+        const isoVal = isNaN(fVal) ? 1 : fVal;
+        const S = 0.5;
+        const gNorm3 = Math.sqrt(fxVal*fxVal + fyVal*fyVal + fzVal*fzVal);
+        const traces3d = [
+          { type: 'isosurface', x: gx3, y: gy3, z: gz3, value: vals3,
+            isomin: isoVal, isomax: isoVal, surface: { count: 1 },
+            colorscale: 'RdBu', opacity: 0.5, showscale: false,
+            name: `Niveaufläche f=${isoVal.toFixed(2)}`,
+            caps: { x: { show: false }, y: { show: false }, z: { show: false } } },
+          { x: [x0], y: [y0], z: [z0], type: 'scatter3d', mode: 'markers',
+            name: `(${x0.toFixed(1)},${y0.toFixed(1)},${z0.toFixed(1)})`,
+            marker: { size: 8, color: '#ef4444' } },
+        ];
+        if (gNorm3 > 1e-9) {
+          traces3d.push({ x: [x0, x0+S*fxVal/gNorm3], y: [y0, y0+S*fyVal/gNorm3], z: [z0, z0+S*fzVal/gNorm3],
+            type: 'scatter3d', mode: 'lines+markers', name: '∇f (Gradient)',
+            line: { color: '#8b5cf6', width: 5 }, marker: { size: [2, 8], color: '#8b5cf6' } });
+        }
+        result.traces3d = traces3d;
+        return result;
+      }
+
+      // --- f(x,y): surface visualization ---
+      const N = 35;
       const fVal = result.model.f(x0, y0);
       const fxVal = result.model.fx(x0, y0);
       const fyVal = result.model.fy(x0, y0);
@@ -510,9 +573,7 @@ export default function App() {
       const h = 0.001;
       const numDir = (result.model.f(x0 + h * Math.cos(theta), y0 + h * Math.sin(theta)) - fVal) / h;
       result.numDirDeriv = numDir;
-      result.mvTotalDiff = result.model.totalDiff;
 
-      // Build 3D surface + vector traces
       const xs3d = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
       const ys3d = Array.from({ length: N }, (_, i) => -R + 2*R*i/(N-1));
       const z3d = ys3d.map(y => xs3d.map(x => result.model.f(x, y)));
@@ -707,7 +768,7 @@ export default function App() {
       }
     }
     return result;
-  }, [mode, activeId, epsilon, qParam, aParam, nMax, x0, delta, hParam, lParam, domainMode, y0, theta]);
+  }, [mode, activeId, epsilon, qParam, aParam, nMax, x0, delta, hParam, lParam, domainMode, y0, z0, theta]);
 
   const W = 1000, H = 450, PL = 130, PR = 80, PT = 40, PB = 50;
   const scaleX = (val) => PL + ((val - comp.X_MIN) / (comp.X_MAX - comp.X_MIN || 1)) * (W - PL - PR);
@@ -975,7 +1036,8 @@ export default function App() {
           {(!comp.isDiscrete && !comp.isPower && !comp.isMultivar) && <Slider label={mode === 'integral' ? "Obergrenze ($b$)" : (domainMode === 'komplex' ? "Ziel ($z_0$)" : (mode === 'stetigkeit' ? "Ziel ($z_*$)" : "Ziel ($x_0$)"))} val={x0} min={-2.0} max={2.0} step={0.1} setFn={setX0} katexReady={katexReady} />}
           {comp.isMultivar && <Slider label="Punkt $x_0$" val={x0} min={-2.0} max={2.0} step={0.1} setFn={setX0} katexReady={katexReady} />}
           {comp.isMultivar && <Slider label="Punkt $y_0$" val={y0} min={-2.0} max={2.0} step={0.1} setFn={setY0} katexReady={katexReady} />}
-          {comp.isMultivar && <Slider label="Richtung $\theta$" val={theta} min={0} max={6.28} step={0.1} setFn={setTheta} katexReady={katexReady} />}
+          {comp.isMultivar && comp.model?.is3var && <Slider label="Punkt $z_0$" val={z0} min={-2.0} max={2.0} step={0.1} setFn={setZ0} katexReady={katexReady} />}
+          {comp.isMultivar && !comp.model?.is3var && <Slider label="Richtung $\theta$" val={theta} min={0} max={6.28} step={0.1} setFn={setTheta} katexReady={katexReady} />}
           {(mode === 'folge' || mode === 'reihe' || mode === 'stetigkeit') && <Slider label="Toleranz ($\varepsilon$)" val={epsilon} min={0.1} max={2.0} step={0.1} setFn={setEpsilon} katexReady={katexReady} />}
           {mode === 'stetigkeit' && <Slider label="Umgebung ($\delta$)" val={delta} min={0.1} max={1.5} step={0.05} setFn={setDelta} katexReady={katexReady} />}
           {mode === 'lipschitz' && <Slider label="Konstante ($L$)" val={lParam} min={0.1} max={5.0} step={0.1} setFn={setLParam} katexReady={katexReady} />}
@@ -1341,7 +1403,10 @@ export default function App() {
               {mode === 'multivar' && comp.gradient && (
                 <span className={`flex items-center gap-1.5 font-bold ${comp.mvTotalDiff ? 'text-emerald-700' : 'text-rose-600'}`}>
                   {comp.mvTotalDiff ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                  <TextWithMath text={`$\\nabla f = (${!isNaN(comp.gradient.fx) ? comp.gradient.fx.toFixed(2) : '?'}, ${!isNaN(comp.gradient.fy) ? comp.gradient.fy.toFixed(2) : '?'})$`} katexReady={katexReady} />
+                  <TextWithMath text={comp.gradient.fz !== undefined
+                    ? `$\\nabla f = (${!isNaN(comp.gradient.fx) ? comp.gradient.fx.toFixed(2) : '?'},\\, ${!isNaN(comp.gradient.fy) ? comp.gradient.fy.toFixed(2) : '?'},\\, ${!isNaN(comp.gradient.fz) ? comp.gradient.fz.toFixed(2) : '?'})$`
+                    : `$\\nabla f = (${!isNaN(comp.gradient.fx) ? comp.gradient.fx.toFixed(2) : '?'},\\, ${!isNaN(comp.gradient.fy) ? comp.gradient.fy.toFixed(2) : '?'})$`
+                  } katexReady={katexReady} />
                 </span>
               )}
             </div>
